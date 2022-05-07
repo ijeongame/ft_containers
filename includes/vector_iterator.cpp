@@ -1,24 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   vector.hpp                                         :+:      :+:    :+:   */
+/*   vector_iterator.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hkwon <hkwon@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/05/03 19:31:22 by hkwon             #+#    #+#             */
-/*   Updated: 2022/05/07 20:51:14 by hkwon            ###   ########.fr       */
+/*   Created: 2022/05/03 19:30:35 by hkwon             #+#    #+#             */
+/*   Updated: 2022/05/07 21:09:16 by hkwon            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef VECTOR_HPP
-# define VECTOR_HPP
+#ifndef VECTORITERATOR_HPP
+# define VECTORITERATRO_HPP
 
-// #include <vector>
+#include "utils.hpp"
+#include "reverse_iterator.hpp"
 
 namespace ft
 {
+	template <typename T, bool IsConst>
+	class vector_iterator
+	{
+		public:
 
-
-}
+	}
+};
 
 #endif
