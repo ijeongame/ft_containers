@@ -6,7 +6,7 @@
 /*   By: hkwon <hkwon@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/03 19:30:35 by hkwon             #+#    #+#             */
-/*   Updated: 2022/05/07 21:09:16 by hkwon            ###   ########.fr       */
+/*   Updated: 2022/05/07 21:21:05 by hkwon            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,11 @@ namespace ft
 	class vector_iterator
 	{
 		public:
+			typedef T value_type;
+			typedef std::ptrdiff_t difference_type;
+			typedef typename choose< IsConst,
 
-	}
+	};
 };
 
 #endif
