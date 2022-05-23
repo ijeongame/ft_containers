@@ -1,19 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   utils.hpp                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: hkwon <hkwon@student.42seoul.kr>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/03/22 15:56:31 by hkwon             #+#    #+#             */
-/*   Updated: 2022/05/07 20:51:59 by hkwon            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef UTILS_HPP
 # define UTILS_HPP
 
-#include "reverse_iterator.hpp"
+#include "iterator.hpp"
 
 /**
  * utils implement
@@ -26,6 +14,32 @@
 
 namespace ft
 {
+	/**
+	 * @brief vector utils
+	 *
+	 */
+	const class nullptr_t{
+	public:
+		// Convertible to any type of null non-member pointer,
+		template<class T>
+		operator T*() const { return 0; }
+
+		// or any type of null member pointer.
+		template<class C, class T>	// any type T for any class type C
+		operator T C::*() const { return 0; }
+
+	private:
+		void operator&() const;	// Can't take address of nullptr.
+	} ft_nullptr = {};
+
+	template <typename InputIterator>
+	typename ft::iterator_traits<InputIterator>::difference_type distance(InputIterator first, InputIterator last)
+	{
+		typename ft::iterator_traits<InputIterator>::difference_type n = 0;
+		while (first++ != last)
+			n++;
+		return (n);
+	}
 	/**
 	 * enable_if
 	 *
@@ -43,7 +57,8 @@ namespace ft
 	struct enable_if {};
 
 	template <typename T>
-	struct enable_if<true, T> {
+	struct enable_if<true, T>
+	{
 		typedef T type;
 	};
 
@@ -231,7 +246,7 @@ namespace ft
 	template <class T1, class T2>
 	pair<T1, T2> make_pair(T1 x, T2 y)
 	{
-		return ( pair<T1, T2>(x,y) );
+		return (pair<T1, T2>(x,y));
 	};
 
 	template <class T1, class T2>
@@ -268,6 +283,21 @@ namespace ft
 	bool operator>=(const pair<T1, T2> &lhs, const pair<T1, T2> &rhs)
 	{
 		return !(lhs < rhs);
+	};
+
+	/**
+	 * @brief Function object class for less-than inequality comparison
+	 * This defaults to less<T>, which returns the same as applying the less-than operator (a<b).
+	 */
+	/**
+	 * @brief less
+	 * Function object class for less-than inequality comparison.
+	 *
+	 * @tparam T	Type of the arguments to compare by the functional call.
+	 */
+	template <class T>
+	struct less : binary_function<T, T, bool> {
+		bool operator()(const T& x, const T& y) const { return x < y; }
 	};
 }
 
