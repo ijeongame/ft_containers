@@ -32,6 +32,15 @@ namespace ft
 		void operator&() const;	// Can't take address of nullptr.
 	} ft_nullptr = {};
 
+	/**
+	 * @brief distance
+	 * User-defined function for finding the distance between two iterators.
+	 *
+	 * @tparam InputIterator		iterator type
+	 * @param first		initial position of the iterator
+	 * @param last		final position of the iterator
+	 * @return iterator_traits<InputIterator>::difference_type	distance between two iterators
+	 */
 	template <typename InputIterator>
 	typename ft::iterator_traits<InputIterator>::difference_type distance(InputIterator first, InputIterator last)
 	{
@@ -128,8 +137,8 @@ namespace ft
 	 * T가 integral type인지 식별하는 class.
 	 * is_integral_type< T > 를 상속받아 T에 따라 type을 다르게 갖는다.
 	 */
-	template < typename T >
-	struct is_integral : public is_integral_type< T > {};
+	template <typename T>
+	struct is_integral : public is_integral_type<T> {};
 
 	//equality
 	template <class InputIterator1, class InputIterator2>
@@ -137,7 +146,7 @@ namespace ft
 	{
 		while (first1 != last1)
 		{
-			if (!(*first1! == *first2))
+			if (!(*first1 == *first2))
 				return false;
 			++first1;
 			++first2;
@@ -226,7 +235,7 @@ namespace ft
 			second_type second;
 
 			//default
-			pair() : first(T1), second(T2) {}
+			pair() : first(), second() {}
 			//copy
 			template<class U, class V> pair (const pair<U, V>& pr) : first(pr.first), second(pr.second) {}
 			//initialization
@@ -264,7 +273,7 @@ namespace ft
 	template <class T1, class T2>
 	bool operator<(const pair<T1, T2> &lhs, const pair<T1, T2> &rhs)
 	{
-		return (lhs.first < rhs.first || !(rhs.first < lhs.first) && lhs.first < rhs.second);
+		return (lhs.first < rhs.first || !((rhs.first < lhs.first) && lhs.first < rhs.second));
 	};
 
 	template <class T1, class T2>
@@ -295,6 +304,14 @@ namespace ft
 	 *
 	 * @tparam T	Type of the arguments to compare by the functional call.
 	 */
+	template < class Arg1, class Arg2, class Result >
+	struct binary_function
+	{
+		typedef Arg1 first_argument_type;
+		typedef Arg2 second_argument_type;
+		typedef Result result_type;
+	};
+
 	template <class T>
 	struct less : binary_function<T, T, bool> {
 		bool operator()(const T& x, const T& y) const { return x < y; }
