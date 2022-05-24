@@ -300,16 +300,41 @@ namespace ft
 				return (value_compare());
 			}
 
-			// Operations:
+			//Operations
+			/**
+			 * @brief find
+			 *
+			 * 컨테이너에서 k에 해당하는 키를 사용하여 요소를 검색하고 발견된 경우 반복자를 반환,
+			 * 발견되지 않은 경우 반복자를 map::end로 반환
+			 *
+			 * 컨테이너의 비교객체가 반사적으로 false를 반환하는 경우(요소가 인자로 전달되는 순서와 관계없이) 두 키는 동일한 것으로 간주
+			 *
+			 * map::count를 사용하여 특정키가 존재하는지 확인할 수 있다.
+			 * @param k
+			 * @return iterator
+			 */
 			iterator find(const key_type& k)
 			{
 				return (iterator(this->_tree.find(value_type(k, mapped_type()))));
 			}
+
 			const_iterator find(const key_type& k) const
 			{
 				return (const_iterator(this->_tree.find(value_type(k, mapped_type()))));
 			}
 
+			/**
+			 * @brief count
+			 *
+			 * 컨테이너에서 k에 해당하는 키를 사용하여 요소를 검색하고 일치 항목 수를 반환한다.
+			 *
+			 * 맵 컨테이너의 모든 요소가 고유하기 때문에 함수는 1(요소가 발견된 경우) 또는 0(요소가 발견되지 않은 경우)만 반환 가능
+			 *
+			 * 컨테이너의 비교객체가 반사적으로 false를 반환하는 경우(요소가 인자로 전달되는 순서와 관계없이) 두 키는 동일한 것으로 간주
+			 *
+			 * @param k
+			 * @return size_type
+			 */
 			size_type count(const key_type& k) const
 			{
 				if (this->_tree.find(value_type(k, mapped_type()))->value != NULL)
@@ -318,6 +343,29 @@ namespace ft
 					return (0);
 			}
 
+			/**
+			 * @brief lower_bound & upper_bound
+			 *
+			 * lower_bound함수의 경우 컨테이너의 오른쪽 원소 중 기준 원소와 같거나 큰 값 중 가장 왼쪽에 있는 원소의 iterator값을 반환한다.
+			 * upper_bound함수의 경우 컨테이너의 오른쪽 원소 중 기준 원소보다 큰 값중 가장 왼쪽에 있는 원소의 iterator값을 반환한다.
+			 * 차이점은 같은 값을 포함하느냐 마느냐의 차이만 있다.
+			 */
+			/**
+			 * @brief lower_bound
+			 *
+			 * 키가 k보다 이전인 것으로 간주되지않는 컨테이너의 첫 번째 요소를 가리키는 반복자를 반환한다.
+			 *
+			 * 함수는 내부 비교 객체(key_comp)를 사용하여 이를 결정하며,
+			 * 반복자를 key_comp(element_key, k)가 false를 반환하는 첫 번째 요소를 반환한다.
+			 *
+			 * 맵 클래스가 기본 비교 타입(less)로 인스턴스화된 경우 함수는 k이상의 키를 가진 첫 번째 요소로 반복자를 반환한다.
+			 *
+			 * lower_bound와 upper_bound는 같은 동작을 하지만, 맵에 va와 같은 키를 가진 요소가 포함되어 있는 경우를 제외하고
+			 * lower_bound는 그 요소를 가리키는 반복자를 반환
+			 * upper_bound는 다음 요소를 가리키는 반복자를 반환
+			 * @param k
+			 * @return iterator
+			 */
 			iterator lower_bound(const key_type& k)
 			{
 				return (iterator(this->_tree.lower_bound(value_type(k, mapped_type()))));
@@ -328,6 +376,23 @@ namespace ft
 				return (const_iterator(this->_tree.lower_bound(value_type(k, mapped_type()))));
 			}
 
+			/**
+			 * @brief upper_bound
+			 *
+			 * 키가 k 다음에 오는인 것으로 간주되는 컨테이너의 첫 번째 요소를 가리키는 반복자를 반환한다.
+			 *
+			 * 함수는 내부 비교 객체(key_comp)를 사용하여 이를 결정하며,
+			 * 반복자를 key_comp(element_key, k)가 true를 반환하는 첫 번째 요소를 반환한다.
+			 *
+			 * 맵 클래스가 기본 비교 타입(less)로 인스턴스화된 경우 함수는 k보다 큰 첫 번째 요소로 반복자를 반환한다.
+			 *
+			 * lower_bound와 upper_bound는 같은 동작을 하지만, 맵에 va와 같은 키를 가진 요소가 포함되어 있는 경우를 제외하고
+			 * lower_bound는 그 요소를 가리키는 반복자를 반환
+			 * upper_bound는 다음 요소를 가리키는 반복자를 반환
+			 *
+			 * @param k
+			 * @return iterator
+			 */
 			iterator upper_bound(const key_type& k)
 			{
 				return (iterator(this->_tree.upper_bound(value_type(k, mapped_type()))));
@@ -337,6 +402,19 @@ namespace ft
 				return (const_iterator(this->_tree.upper_bound(value_type(k, mapped_type()))));
 			}
 
+			/**
+			 * @brief equal_range
+			 *
+			 * k와 동등한 키를 가진 컨테이너의 모든 요소를 포함하는 범위의 경계를 반환한다.
+			 * 맵 컨테이너의 요소에는 고유한 키가 있으므로 반환되는 범위에는 최대 단일 요소가 포함된다.
+			 * 일치하는 요소가 없으면 반환되는 범위는 0이며,
+			 * 두 반복자는 컨테이너의 내부 비교 객체(key_comp)에 따라 k 이후인 것으로 간되는 키를 가진 첫 번째 요소를 가리킨다.
+			 *
+			 * 컨테이너의 비교객체가 반사적으로 false를 반환하는 경우(요소가 인자로 전달되는 순서와 관계없이) 두 키는 동일한 것으로 간주
+			 *
+			 * @param k
+			 * @return pair<iterator, iterator>
+			 */
 			pair<iterator, iterator> equal_range(const key_type& k)
 			{
 				return (ft::make_pair(lower_bound(k), upper_bound(k)));
@@ -346,7 +424,12 @@ namespace ft
 				return (ft::make_pair(lower_bound(k), upper_bound(k)));
 			}
 
-			// Allocator:
+			/**
+			 * @brief Allocator
+			 *
+			 * 맵과 연결된 allocator object의 복사본을 반환한다.
+			 * @return Allocator
+			 */
 			allocator_type get_allocator() const
 			{
 				return (this->_alloc);

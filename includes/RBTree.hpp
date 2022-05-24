@@ -143,6 +143,7 @@ namespace ft
 			}
 
 			//Iterators
+			//가장 작은 값을 찾는다.
 			node_type* get_begin() const
 			{
 				node_type* tmp = this->_root;
@@ -151,6 +152,7 @@ namespace ft
 				return (tmp);
 			}
 
+			//nil노드를 가리키게 한다.
 			node_type* get_end() const
 			{
 				return (this->_nil);
@@ -229,32 +231,37 @@ namespace ft
 			 */
 			ft::pair<node_type*, bool> insert(const value_type& val, node_type* hint = NULL)
 			{
-				node_type* new_node = make_node(val); // Creates a node with the val value entered as an argument.
-				node_type* position = this->_root; // Where the node will be inserted.
-				// If tree is empty.
+				//val 값을 인자로 입력하여 노드를 생성한다.
+				node_type* new_node = make_node(val);
+				//노드가 삽일될 위치를 탐색한다. tree가 비어있을 경우를 대비해 초기 위치를 root로 설정한다.
+				node_type* position = this->_root;
+				//tree가 비어있을 경우, 생성한 노드(new_node)를 root로 지정한다.
 				if (this->_size == 0)
 				{
 					this->_root = new_node;
 					this->_root->leftChild = this->_nil;
 					this->_root->rightChild = this->_nil;
-					this->_root->parent = this->_nil;
+					this->_root->parent = this->_nil; //여기서 중요한 점이 root의 부모도 nil노드를 가리키게 설정
 					this->_root->color = BLACK;
-					this->_nil->parent = this->_root;
+					this->_nil->parent = this->_root; //다시 nil의 부모를 root로 설정
 					this->_size++;
-					return ft::make_pair(this->_root, true);
+					return ft::make_pair(this->_root, true); //새로 만든
 				}
-				// Check if the hint position is valid.
+				//hint의 위치가 유효한지 확인한다.
+				//single element의 경우 hint는 null
 				if (hint != NULL && hint->value != NULL)
 					position = check_hint(val, hint);
-				// Find the position where the node will be inserted.
+				//노드를 삽입할 위치를 탐색한다.
+				//leftchild와 rightchild에 삽입을 실패하면 false를 반환
 				ft::pair<node_type*, bool> is_valid = get_position(position, new_node);
-				if (is_valid.second == false) {
+				if (is_valid.second == false)
+				{
 					_node_alloc.destroy(new_node);
 					_node_alloc.deallocate(new_node, 1);
 					return (is_valid);
 				}
-				// A new_node has been inserted,
-				// and now we need to balance it according to the rules of the RBTree.
+				//new_node 삽입 후 rbtree의 규칙(속성)에 따라 균형을 잡아야한다.
+				//이는 insert_case에 따라 rotate를 통해 진행한다.
 				insert_case1(new_node);
 				this->_size++;
 				this->_nil->parent = get_max_value_node();
@@ -332,32 +339,39 @@ namespace ft
 			 */
 			size_type erase(node_type* node)
 			{
+				//삭제할 노드가 nil 노드인 경우 0을 반환 -> map에서 삭제가 실패한 경우 0을 반환
 				if (node->value == NULL)
 					return (0);
-				// node의 왼쪽 서브트리에서 최댓값 / 오른쪽 서브트리에서 최솟값을 찾음.
-				// node와 M의 값을 바꾸고 M을 리턴받음.
-				node_type* real = replace_erase_node(node);
-				// 진짜 삭제할 노드는 M(real)이고, 그 자식 노드를 child라고 함.
+				//node의 왼쪽 서브트리에서 최댓값 / 오른쪽 서브트리에서 최솟값을 찾은 후 위치를 변경한다.
+				//기존 target 위치에는 대체할 node가 들어가있다.
+				//target 노드 자체를 삭제해야 한다.
+				//위치변경우 target은 child에 non-nil 노드가 최대 1개이다.
+				//child는 target노드의 non-nil child가 우선이다.
+				node_type* target = replace_erase_node(node);
 				node_type* child;
-				if (real->rightChild->value == NULL)
-					child = real->leftChild;
+				if (target->rightChild->value == NULL)
+					child = target->leftChild;
 				else
-					child = real->rightChild;
-				// 1) M이 RED인 경우, 무조건 그 자식 노드들은 nil이었을 것이다(BLACK). M을 nil로 바꾸면 됨.
-				replace_node(real, child);
-				if (real->color == BLACK)
+					child = target->rightChild;
+
+				//1)target이 RED인 경우, 무조건 그 자식 노드들은 nil이었을 것이다(BLACK). target을 nil로 바꾸면 해결
+				replace_node(target, child);
+				if (target->color == BLACK)
 				{
-					// 2) M이 BLACK이고 C가 RED인 경우, M을 C로 바꾸고 색을 BLACK으로 바꾼다.
+					//2)target이 BLACK이고 child가 RED인 경우, target과 child의 색을 바꾸고 child의 색을 BLACK으로 바꾼다.
+					//해당 경우만 child node가 non-nil노드이다.
 					if (child->color == RED)
 						child->color = BLACK;
 					else
 						delete_case1(child);
-					// 3) M과 C가 모두 BLACK인 경우, C는 무조건 nil이었을 것이다.
+					//3) target과 child가 모두 BLACK인 경우, child는 무조건 nil이었을 것이다.
+					//사실상 target노드의 두 자식은 모두 nil이다. -> child노드도 nil
+					//replace_node에서 child(nil)->parent를 상황에 맞게 설정
 				}
 				this->_size--;
-				if (real->parent->value == NULL)
+				if (target->parent->value == NULL)
 					this->_root = this->_nil;
-				delete real;
+				delete target;
 				this->_nil->parent = get_max_value_node();
 				return (1);
 			}
@@ -374,16 +388,16 @@ namespace ft
 			void clear(node_type* node = NULL)
 			{
 				if (node == NULL)
-					node = _root;
+					node = this->_root;
 				if (node->leftChild->value != NULL)
 				{
 					clear(node->leftChild);
-					node->leftChild = _nil;
+					node->leftChild = this->_nil;
 				}
 				if (node->rightChild->value != NULL)
 				{
 					clear(node->rightChild);
-					node->rightChild = _nil;
+					node->rightChild = this->_nil;
 				}
 				// delete
 				if (node->value != NULL)
@@ -396,13 +410,14 @@ namespace ft
 				}
 			}
 
-			// Operations:
+			//Operations
 			node_type* find(value_type val) const
 			{
 				node_type* res = this->_root;
 				if (this->_size == 0)
 					return (this->_nil);
-				while (res->value != NULL && (_comp(val, *res->value) || _comp(*res->value, val))) {
+				while (res->value != NULL && (_comp(val, *res->value) || _comp(*res->value, val)))
+				{
 					if (_comp(val, *res->value))
 						res = res->leftChild;
 					else
@@ -411,27 +426,34 @@ namespace ft
 				return (res);
 			}
 
+			/**
+			 * @brief lower_bound & upper_bound
+			 *
+			 * 같은 동작을 하지만, 맵에 va와 같은 키를 가진 요소가 포함되어 있는 경우를 제외하고
+			 * lower_bound는 그 요소를 가리키는 반복자를 반환
+			 * upper_bound는 다음 요소를 가리키는 반복자를 반환
+			 *
+			 * @param val
+			 * @return node_type*
+			 */
+
+			//val보다 크거나 같은 범위를 구하기 위함.
 			node_type* lower_bound(const value_type& val) const
 			{
 				iterator it(get_begin());
 				iterator ite(get_end());
-				while (it != ite) {
-					if (!_comp(*it, val))
-						break;
+				while (it != ite && _comp(*it, val))
 					it++;
-				}
 				return (it.base());
 			}
 
+			//val보다 큰 범위를 구하는 함수
 			node_type* upper_bound(const value_type& val) const
 			{
 				iterator it(get_begin());
 				iterator ite(get_end());
-				while (it != ite) {
-					if (_comp(val, *it))
-						break;
+				while (it != ite && !_comp(val, *it))
 					it++;
-				}
 				return (it.base());
 			}
 
@@ -439,6 +461,7 @@ namespace ft
 			void showMap() { ft::printMap(_root, 0); }
 
 		private :
+			//노드의 조상노드을 반환한다.
 			node_type* get_grandparent(node_type* node) const
 			{
 				if (node != NULL && node->parent != NULL)
@@ -447,6 +470,7 @@ namespace ft
 					return (NULL);
 			}
 
+			//노드의 삼촌노드를 반환한다.
 			node_type* get_uncle(node_type* node) const
 			{
 				node_type* grand = get_grandparent(node);
@@ -458,6 +482,7 @@ namespace ft
 					return (grand->leftChild);
 			}
 
+			//노드의 형제노드를 반환한다.
 			node_type* get_sibling(node_type* node) const
 			{
 				if (node == node->parent->leftChild)
@@ -466,6 +491,8 @@ namespace ft
 					return (node->parent->leftChild);
 			}
 
+			//tree에서 가장 큰 값을 가지는 노드를 찾는다.
+			//tree에서 가장 오른쪽에 있는 값이 가장 큰 값이다.
 			node_type* get_max_value_node() const
 			{
 				node_type* tmp = _root;
@@ -474,6 +501,8 @@ namespace ft
 				return (tmp);
 			}
 
+			//nil 노드를 만든다.
+			//아무런 값이 없는 노드, tree의 leat노드이다.
 			node_type* make_nil()
 			{
 				node_type* res = _node_alloc.allocate(1);
@@ -486,6 +515,8 @@ namespace ft
 				return (res);
 			}
 
+			//value 값을 가지는 노드를 만든다.
+			//노드의 색/자식/부모는 삽입 후 tree의 속성에 맞게 재조정 후 결정한다.
 			node_type* make_node(const value_type& val)
 			{
 				node_type* res = _node_alloc.allocate(1);
@@ -493,6 +524,13 @@ namespace ft
 				return (res);
 			}
 
+			/**
+			 * Hint 쓰는 경우. (hint가 적절한 위치인 경우)
+			 * inserted value는 hint node의 right-sub-tree로 들어간다.
+			 * 공통 조건 :  hint < inserted value 인 경우.
+			 * 1) hint가 leftChild인 경우, inserted value < hint-parent 이면, hint부터 탐색.
+			 * 2) hint가 rightChild인 경우, parent를 따라가다가 처음으로 leftChild인  d노드의 parent보다 작으면 hint부터 탐색.
+			 */
 			node_type* check_hint(value_type val, node_type* hint)
 			{
 				if (_comp(*hint->value, *_root->value) && _comp(val, *hint->value))
@@ -507,11 +545,13 @@ namespace ft
 					return (_root);
 			}
 
+			//노드를 삽입할 위치를 탐색하는 함수이다.
+			//make_pair로 한 쌍의 pair를 만든 후 삽입이 가능한지 true/false를 반환한다.
 			ft::pair<node_type*, bool> get_position(node_type* position, node_type* node)
 			{
 				while (position->value != NULL)
 				{
-					if (_comp(*node->value, *position->value))
+					if (_comp(*node->value, *position->value)) //position을 기준으로 leftchild로 들어감
 					{
 						if (position->leftChild->value == NULL)
 						{
@@ -525,7 +565,7 @@ namespace ft
 						else
 							position = position->leftChild;
 					}
-					else if (_comp(*position->value, *node->value))
+					else if (_comp(*position->value, *node->value)) //position을 기준으로 rightchild로 들어감
 					{
 						if (position->rightChild->value == NULL)
 						{
@@ -545,16 +585,28 @@ namespace ft
 				return (ft::make_pair(position, true));
 			}
 
+			/**
+			 * @brief rotate
+			 *
+			 * rbtree의 밸런싱을 잡고 rbtree의 속성에 맞게 재조정을 하기위해 사용한다.
+			 * rotate_left, rotate_right 두 종류의 rotate가 있다.
+			 * rotate 후 자식노드의 변경이 생기므로 유의하자.
+			 *
+			 * @param node
+			 */
+			//child가 node의 오른쪽 자식일 경우 rotate_left를 한다.
 			void rotate_left(node_type* node)
 			{
 				node_type* child = node->rightChild;
 				node_type* parent = node->parent;
+				//node를 기준으로 왼쪽으로 회전하는 경우
 				if (child->leftChild->value != NULL)
 					child->leftChild->parent = node;
 				node->rightChild = child->leftChild;
 				node->parent = child;
 				child->leftChild = node;
 				child->parent = parent;
+				//node가 부모의 왼쪽 자식인지 오른쪽 자식인지 판단.
 				if (parent->value != NULL)
 				{
 					if (parent->leftChild == node)
@@ -566,6 +618,7 @@ namespace ft
 					_root = child;
 			}
 
+			//child가 node의 오른쪽 자식일 경우 rotate_left를 한다.
 			void rotate_right(node_type* node)
 			{
 				node_type* child = node->leftChild;
