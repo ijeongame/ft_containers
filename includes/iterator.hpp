@@ -129,6 +129,7 @@ namespace ft
 			 * @brief operator
 			 */
 			//assigns another iterator adaptor
+			template <typename Iter>
 			reverse_iterator& operator=(const reverse_iterator<Iter>& rev_it) //assignment
 			{
 				this->current = rev_it.current;

@@ -18,24 +18,24 @@ namespace ft
 	 * @brief vector utils
 	 *
 	 */
-	const class nullptr_t{
-	public:
-		// Convertible to any type of null non-member pointer,
-		template<class T>
-		operator T*() const { return 0; }
+	// const class nullptr_t{
+	// public:
+	// 	// Convertible to any type of null non-member pointer,
+	// 	template<class T>
+	// 	operator T*() const { return 0; }
 
-		// or any type of null member pointer.
-		template<class C, class T>	// any type T for any class type C
-		operator T C::*() const { return 0; }
+	// 	// or any type of null member pointer.
+	// 	template<class C, class T>	// any type T for any class type C
+	// 	operator T C::*() const { return 0; }
 
-	private:
-		void operator&() const;	// Can't take address of nullptr.
-	} ft_nullptr = {};
+	// private:
+	// 	void operator&() const;	// Can't take address of nullptr.
+	// } NULL = {};
 
 	/**
 	 * @brief distance
 	 * User-defined function for finding the distance between two iterators.
-	 *
+	 * implementation via tag dispatch, available in C++98 with constexpr removed
 	 * @tparam InputIterator		iterator type
 	 * @param first		initial position of the iterator
 	 * @param last		final position of the iterator
@@ -224,6 +224,13 @@ namespace ft
 		return (first2 != last2);
 	};
 
+	/**
+	 * @brief pair
+	 * 두 객체를 하나의 객체로 취급 할 수 있게 묶어주는 클래스
+	 *
+	 * @tparam T1
+	 * @tparam T2
+	 */
 	template <class T1, class T2>
 	struct pair
 	{
@@ -252,6 +259,16 @@ namespace ft
 			}
 	};
 
+	/**
+	 * @brief make pair
+	 *
+	 * 변수1(x), 변수2(y)가 들어간 pair를 만들어준다
+	 * @tparam T1
+	 * @tparam T2
+	 * @param x : first
+	 * @param y : second
+	 * @return pair<T1, T2>
+	 */
 	template <class T1, class T2>
 	pair<T1, T2> make_pair(T1 x, T2 y)
 	{
@@ -273,7 +290,7 @@ namespace ft
 	template <class T1, class T2>
 	bool operator<(const pair<T1, T2> &lhs, const pair<T1, T2> &rhs)
 	{
-		return (lhs.first < rhs.first || !((rhs.first < lhs.first) && lhs.first < rhs.second));
+		return (lhs.first < rhs.first || (!(rhs.first < lhs.first) && lhs.second < rhs.second));
 	};
 
 	template <class T1, class T2>
@@ -295,15 +312,18 @@ namespace ft
 	};
 
 	/**
-	 * @brief Function object class for less-than inequality comparison
-	 * This defaults to less<T>, which returns the same as applying the less-than operator (a<b).
-	 */
-	/**
-	 * @brief less
-	 * Function object class for less-than inequality comparison.
+	 * @brief binary function
 	 *
-	 * @tparam T	Type of the arguments to compare by the functional call.
+	 * 표준 이진 함수 객체의 기본 클래스
+	 * 이항 함수 개체를 제공하는 파생 클래스에 상속될 수 있는 형식을 정의하는 빈 기본 구조체입니다.
+	 *
+	 * 일반적으로 함수 객체는 member function operator()기 정의된 클래스의 인스턴스이다.
+	 * 멤버함수는 객체를 일반함수 호출과 동일한 구문과 함께 사용할 수 있게 하므로 일반 함수 유형이 필요할 떄 템플릿 매개변수로 사용할 수 있다.
+	 *
+	 * 이진 함수 객체가 파생되는 기본 클래스일 뿐이다.
+	 * 어떤 파생 클래스를 정의할 것인지 정의된 연산자() 멤버가 없으며 템플릿 매개 변수의 형식 def인 세 개의 공용 데이터 멤버가 있을 뿐이다.
 	 */
+
 	template < class Arg1, class Arg2, class Result >
 	struct binary_function
 	{
@@ -312,9 +332,27 @@ namespace ft
 		typedef Result result_type;
 	};
 
+	/**
+	 * @brief less
+	 * Function object class for less-than inequality comparison.
+	 * Function object class for less-than inequality comparison
+	 * This defaults to less<T>, which returns the same as applying the less-than operator (a<b).
+	 * 첫 번째 인수가 두 번째 인수보다 작은지(operator<에 의해 반환됨)를 호출하는 binary function
+	 * 인수에 대해 보다 작음 연산(operator<)을 수행하는 이진 조건자
+	 *
+	 * 일반적으로 함수 객체는 member function operator()가 정의된 클래스의 인스턴스이다.
+	 * 해당 멤버함수를 사용하면 객체를 함수 호출과 동일한 구문으로 사용할 수 있다.
+	 *
+	 * @tparam T	Type of the arguments to compare by the functional call.
+	 */
+	//operator< 와 동일한 반환값을 가진다.
 	template <class T>
-	struct less : binary_function<T, T, bool> {
-		bool operator()(const T& x, const T& y) const { return x < y; }
+	struct less : binary_function<T, T, bool>
+	{
+		bool operator()(const T& x, const T& y) const
+		{
+			return (x < y);
+		}
 	};
 }
 

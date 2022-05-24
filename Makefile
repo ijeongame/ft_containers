@@ -27,7 +27,6 @@ test :
 	@make mytest CONT=vector_test
 	@make mytest CONT=stack_test
 	@make mytest CONT=map_test
-	@make mytest CONT=set_test
 
 mytest :
 	@mkdir -p $(TESTER_LOG_DIR)
@@ -48,7 +47,6 @@ time :
 	@make time_unit CONT=vector_test
 	@make time_unit CONT=stack_test
 	@make time_unit CONT=map_test
-	@make time_unit CONT=set_test
 
 time_unit :
 	@$(CC) $(CFLAGS) $(TESTER_DIR)/$(CONT).cpp -o $(CONT) -I$(INC_DIR) -DTESTED_NAMESPACE=$(FT)

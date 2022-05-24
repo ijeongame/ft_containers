@@ -156,11 +156,11 @@ namespace ft
 		 */
 		//default constructor
 		explicit vector(const allocator_type &alloc = allocator_type())
-		: _alloc(alloc), _start(ft_nullptr), _end(ft_nullptr), _end_of_capacity(ft_nullptr){}
+		: _alloc(alloc), _start(NULL), _end(NULL), _end_of_capacity(NULL){}
 
 		//fill constructor
 		explicit vector(size_type n, const value_type &val = value_type(), const allocator_type &alloc = allocator_type())
-		: _alloc(alloc), _start(ft_nullptr), _end(ft_nullptr), _end_of_capacity(ft_nullptr)
+		: _alloc(alloc), _start(NULL), _end(NULL), _end_of_capacity(NULL)
 		{
 			this->_start = this->_alloc.allocate(n);
 			this->_end = this->_start;
@@ -173,8 +173,8 @@ namespace ft
 		template <typename InputIterator>
 		vector(InputIterator first, InputIterator last,
 				const allocator_type &alloc = allocator_type(),
-				typename ft::enable_if< !ft::is_integral< InputIterator >::value, InputIterator >::type* = ft_nullptr)
-		: _alloc(alloc), _start(ft_nullptr), _end(ft_nullptr), _end_of_capacity(ft_nullptr)
+				typename ft::enable_if< !ft::is_integral< InputIterator >::value, InputIterator >::type* = NULL)
+		: _alloc(alloc), _start(NULL), _end(NULL), _end_of_capacity(NULL)
 		{
 			//type
 			difference_type n = ft::distance(first, last);
@@ -189,7 +189,7 @@ namespace ft
 
 		//copy constructor
 		vector(const vector &x)
-		: _alloc(x._alloc), _start(ft_nullptr), _end(ft_nullptr), _end_of_capacity(ft_nullptr)
+		: _alloc(x._alloc), _start(NULL), _end(NULL), _end_of_capacity(NULL)
 		{
 			difference_type n = x._end - x._start;
 			this->_start = this->_alloc.allocate(n);
@@ -398,7 +398,7 @@ namespace ft
 		//벡터에 새 내용을 할당하고 현재 내용을 교체하고 그에 따라 크기를 수정한다.
 		template < typename InputIterator >
 		void assign(InputIterator first, InputIterator last,
-					typename ft::enable_if< !ft::is_integral< InputIterator >::value, InputIterator >::type * = ft_nullptr)
+					typename ft::enable_if< !ft::is_integral< InputIterator >::value, InputIterator >::type * = NULL)
 		{
 			this->clear();
 			size_type n = ft::distance(first, last);
@@ -415,7 +415,7 @@ namespace ft
 				this->_start = this->_alloc.allocate(n);
 				this->_end = this->_start;
 				this->_end_of_capacity = this->_start + n;
-				const_pointer tmp = &*(first);
+				const_pointer tmp = &(*first);
 				while(tmp != &(*last))
 					this->_alloc.construct(this->_end++, *tmp++);
 				this->_alloc.deallocate(prev_start, prev_end_of_capacity - prev_start);
@@ -520,7 +520,7 @@ namespace ft
 		//3.range element instert
 		template < typename InputIterator >
 		void insert(iterator position, InputIterator first, InputIterator last,
-			typename ft::enable_if< !ft::is_integral< InputIterator >::value >::type* = ft_nullptr)
+			typename ft::enable_if< !ft::is_integral< InputIterator >::value >::type* = NULL)
 		{
 			size_type n = ft::distance(first, last);
 			if (this->size() + n <= this->capacity())
