@@ -1,0 +1,213 @@
+################ Test Map ################
+===== default | range | copy constructor =====
+default constructor: 
+size: 0
+Content is:
+------------------------
+range constructor: 
+size: 10
+Content is:
+- key: 1	& value: A
+- key: 2	& value: BB
+- key: 3	& value: CCC
+- key: 4	& value: DDDD
+- key: 5	& value: EEEEE
+- key: 6	& value: FFFFFF
+- key: 7	& value: GGGGGGG
+- key: 8	& value: HHHHHHHH
+- key: 9	& value: IIIIIIIII
+- key: 10	& value: JJJJJJJJJJ
+------------------------
+copy constructor: 
+size: 10
+Content is:
+- key: 1	& value: A
+- key: 2	& value: BB
+- key: 3	& value: CCC
+- key: 4	& value: DDDD
+- key: 5	& value: EEEEE
+- key: 6	& value: FFFFFF
+- key: 7	& value: GGGGGGG
+- key: 8	& value: HHHHHHHH
+- key: 9	& value: IIIIIIIII
+- key: 10	& value: JJJJJJJJJJ
+------------------------
+
+################################################
+===== assignment operator =====
+size: 5
+Content is:
+- key: 1	& value: CCCCC
+- key: 2	& value: DDDD
+- key: 3	& value: EEE
+- key: 4	& value: FF
+- key: 5	& value: G
+------------------------
+
+################################################
+===== size | clear | empty =====
+before clear: 
+size: 5
+Content is:
+- key: 1	& value: CCCCC
+- key: 2	& value: DDDD
+- key: 3	& value: EEE
+- key: 4	& value: FF
+- key: 5	& value: G
+------------------------
+after clear: 
+size: 0
+Content is:
+------------------------
+Is empty: OK
+
+################################################
+===== insert | erase | [] =====
++++ insert +++
+size: 3
+Content is:
+- key: 3	& value: EEE
+- key: 4	& value: FF
+- key: 5	& value: G
+------------------------
+size: 4
+Content is:
+- key: 3	& value: EEE
+- key: 4	& value: FF
+- key: 5	& value: G
+- key: 42	& value: Seoul
+------------------------
+size: 5
+Content is:
+- key: 3	& value: EEE
+- key: 4	& value: FF
+- key: 5	& value: G
+- key: 21	& value: Hello
+- key: 42	& value: Seoul
+------------------------
++++ [] +++
+size: 6
+Content is:
+- key: 2	& value: New
+- key: 3	& value: EEE
+- key: 4	& value: FF
+- key: 5	& value: G
+- key: 21	& value: Hello
+- key: 42	& value: Seoul
+------------------------
+size: 6
+Content is:
+- key: 2	& value: New
+- key: 3	& value: EEE
+- key: 4	& value: Change
+- key: 5	& value: G
+- key: 21	& value: Hello
+- key: 42	& value: Seoul
+------------------------
++++ erase +++
+size: 5
+Content is:
+- key: 2	& value: New
+- key: 4	& value: Change
+- key: 5	& value: G
+- key: 21	& value: Hello
+- key: 42	& value: Seoul
+------------------------
+size: 4
+Content is:
+- key: 2	& value: New
+- key: 4	& value: Change
+- key: 5	& value: G
+- key: 42	& value: Seoul
+------------------------
+size: 2
+Content is:
+- key: 2	& value: New
+- key: 42	& value: Seoul
+------------------------
+
+################################################
+===== swap | find | count =====
+size: 2
+Content is:
+- key: 2	& value: New
+- key: 42	& value: Seoul
+------------------------
+size: 10
+Content is:
+- key: 1	& value: A
+- key: 2	& value: BB
+- key: 3	& value: CCC
+- key: 4	& value: DDDD
+- key: 5	& value: EEEEE
+- key: 6	& value: FFFFFF
+- key: 7	& value: GGGGGGG
+- key: 8	& value: HHHHHHHH
+- key: 9	& value: IIIIIIIII
+- key: 10	& value: JJJJJJJJJJ
+------------------------
++++ swap +++
+size: 10
+Content is:
+- key: 1	& value: A
+- key: 2	& value: BB
+- key: 3	& value: CCC
+- key: 4	& value: DDDD
+- key: 5	& value: EEEEE
+- key: 6	& value: FFFFFF
+- key: 7	& value: GGGGGGG
+- key: 8	& value: HHHHHHHH
+- key: 9	& value: IIIIIIIII
+- key: 10	& value: JJJJJJJJJJ
+------------------------
+size: 2
+Content is:
+- key: 2	& value: New
+- key: 42	& value: Seoul
+------------------------
+find 5: EEEEE
+count 5: 1
+count 20: 0
+
+################################################
+===== lower_bound | upper_bound | equal_range =====
+lower_bound: 5
+upper_bound: 6
+equal_range: 5, 6
+
+################################################
+===== relational operators =====
+size: 7
+Content is:
+- key: 0	& value: CCCCCCC
+- key: 2	& value: DDDDDD
+- key: 4	& value: EEEEE
+- key: 6	& value: FFFF
+- key: 8	& value: GGG
+- key: 10	& value: HH
+- key: 12	& value: I
+------------------------
+size: 7
+Content is:
+- key: 0	& value: CCCCCCC
+- key: 2	& value: DDDDDD
+- key: 4	& value: EEEEE
+- key: 6	& value: FFFF
+- key: 8	& value: GGG
+- key: 10	& value: HH
+- key: 12	& value: I
+------------------------
+same map...
+operator==: OK
+operator!=: KO
+operator<:  KO
+operator<=: OK
+operator>:  KO
+operator>=: OK
+different map...
+operator==: KO
+operator!=: OK
+operator<:  OK
+operator<=: OK
+operator>:  KO
+operator>=: KO

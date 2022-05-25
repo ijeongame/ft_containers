@@ -2,8 +2,8 @@ CC = clang++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 INC_DIR = ./includes
-TESTER_DIR = ./mytester
-TESTER_LOG_DIR = ./mytester/log
+TESTER_DIR = ./mainTester
+TESTER_LOG_DIR = ./mainTester/log
 
 RM = rm -f
 
@@ -21,14 +21,15 @@ all :
 	@make test
 
 start :
-	@$(TESTER_DIR)/mytest.sh
+	@$(TESTER_DIR)/mainTest.sh
 
 test :
-	@make mytest CONT=vector_test
-	@make mytest CONT=stack_test
-	@make mytest CONT=map_test
+	@make mainTest CONT=vector_test
+	@make mainTest CONT=stack_test
+	@make mainTest CONT=map_test
+	@make mainTest CONT=set_test
 
-mytest :
+mainTest :
 	@mkdir -p $(TESTER_LOG_DIR)
 	@$(CC) $(CFLAGS) $(TESTER_DIR)/$(CONT).cpp -o $(CONT) -I$(INC_DIR) -DTESTED_NAMESPACE=$(FT)
 	@./$(CONT) > $(TESTER_LOG_DIR)/$(FT)_$(CONT)
@@ -46,7 +47,7 @@ print :
 time :
 	@make time_unit CONT=vector_test
 	@make time_unit CONT=stack_test
-	@make time_unit CONT=map_test
+	@make time_unit CONT=set_test
 
 time_unit :
 	@$(CC) $(CFLAGS) $(TESTER_DIR)/$(CONT).cpp -o $(CONT) -I$(INC_DIR) -DTESTED_NAMESPACE=$(FT)
@@ -65,4 +66,4 @@ fclean : clean
 
 re : fclean all
 
-.PHONY: all clean fclean re start test mytest time time_unit
+.PHONY: all clean fclean re start test mainTest time time_unit
