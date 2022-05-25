@@ -36,6 +36,10 @@ namespace ft
 	 *
 	 * 시간복잡도
 	 * 삽입/삭제/탐색 = O(logN)
+	 * 루트 노드부터 가장 먼 nil노드 경로까지의 거리가, 가장 가까운 nil노드 경로까지의 거리의 두 배 보다 항상 작다.
+	 * 레드-블랙 트리는 개략적(roughly)으로 균형이 잡혀 있다(balanced).
+	 * 따라서, 삽입/삭제/탐색시 최악의 경우(worst-case)에서의 시간복잡도가 트리의 높이(또는 깊이)에 따라 결정되기 때문에
+	 * 보통의 이진 탐색 트리에 비해 효율적이라고 할 수 있다.
 	 *
 	 * nil node - rbtree에만 존재하는 개념
 	 * 존재하지 않음을 의미하는 노드 -> 구현 시 NULL로 표현하고 모든 자식노드의 nil노드를 하나의 null로 향하게 한다.
@@ -354,17 +358,19 @@ namespace ft
 				else
 					child = target->rightChild;
 
-				//1)target이 RED인 경우, 무조건 그 자식 노드들은 nil이었을 것이다(BLACK). target을 nil로 바꾸면 해결
+				//1)target이 RED인 경우, 무조건 그 자식 노드들이 nil일 때만 발생한다(BLACK). target을 nil로 바꾸면 해결
 				replace_node(target, child);
 				if (target->color == BLACK)
 				{
-					//2)target이 BLACK이고 child가 RED인 경우, target과 child의 색을 바꾸고 child의 색을 BLACK으로 바꾼다.
+					//2)target이 BLACK이고 child가 RED인 경우,
+					//target과 child의 색을 바꾸고 child의 색을 BLACK으로 바꾼다.
 					//해당 경우만 child node가 non-nil노드이다.
 					if (child->color == RED)
 						child->color = BLACK;
 					else
 						delete_case1(child);
 					//3) target과 child가 모두 BLACK인 경우, child는 무조건 nil이었을 것이다.
+					//두 개의 nil노드를 가지고 있는 검은 노드를 지우는 상황에서만 발생
 					//사실상 target노드의 두 자식은 모두 nil이다. -> child노드도 nil
 					//replace_node에서 child(nil)->parent를 상황에 맞게 설정
 				}
@@ -585,7 +591,201 @@ namespace ft
 				return (ft::make_pair(position, true));
 			}
 
-			/**
+			node_type* replace_erase_node(node_type* node)
+			{
+				// node의 leftChild가 있으면, 왼쪽 서브트리에서 최댓값,
+				// node의 leftChild가 없으면, 오른쪽 서브트리에서 최솟값을 찾는다.
+				// 찾은 값의 value를 node에 복사하고, 찾은 그 노드는 삭제해야 하므로 리턴한다.
+				node_type* res;
+				if (node->leftChild->value != NULL)
+				{
+					res = node->leftChild;
+					while (res->rightChild->value != NULL)
+						res = res->rightChild;
+				}
+				else if (node->rightChild->value != NULL)
+				{
+					res = node->rightChild;
+					while (res->leftChild->value != NULL)
+						res = res->leftChild;
+				}
+				else
+					return (node);
+
+				node_type* tmp_parent = node->parent;
+				node_type* tmp_left = node->leftChild;
+				node_type* tmp_right = node->rightChild;
+				RBColor tmp_color = node->color;
+
+				//node의 left/rightChild 설정
+				node->leftChild = res->leftChild;
+				if (res->leftChild->value != NULL)
+					res->leftChild->parent = node;
+				node->rightChild = res->rightChild;
+				if (res->rightChild->value != NULL)
+					res->rightChild->parent = node;
+
+				//res를 node->parent의 left/rightChild로 설정
+				if (tmp_parent->leftChild == node)
+					tmp_parent->leftChild = res;
+				else if (tmp_parent->rightChild == node)
+					tmp_parent->rightChild = res;
+
+				if (res == tmp_left)
+				{
+					//res의 형제를 res의 left/rightChild로 연결
+					tmp_right->parent = res;
+					res->rightChild = tmp_right;
+					//node를 res의 left/rightChild로 연결
+					node->parent = res;
+					res->leftChild = node;
+				}
+				else if (res == tmp_right)
+				{
+					tmp_left->parent = res;
+					res->leftChild = tmp_left;
+					node->parent = res;
+					res->rightChild = node;
+				}
+				else
+				{
+					//res와 node가 멀리 떨어진 경우
+					tmp_left->parent = res;
+					res->leftChild = tmp_left;
+					tmp_right->parent = res;
+					res->rightChild = tmp_right;
+					node->parent = res->parent;
+					res->parent->rightChild = node;
+				}
+
+				//res의 parent 연결
+				res->parent = tmp_parent;
+
+				if (res->parent->value == NULL)
+					_root = res;
+				node->color = res->color;
+				res->color = tmp_color;
+
+				return (node);
+			}
+
+			void replace_node(node_type* node, node_type* child)
+			{
+				//노드의 부모가 NULL이 되는 경우를 delete_case에 오지 않게 미리 처리할 수 있다.
+				child->parent = node->parent;
+				if (node->parent->leftChild == node)
+					node->parent->leftChild = child;
+				else// if (node->parent->rightChild == node)
+					node->parent->rightChild = child;
+			}
+
+			void insert_case1(node_type* node)
+			{
+				/**
+				 * @brief insert_case1
+				 * 삽입된 새로운 노드가 root노드가 아닌 경우
+				 */
+				if (node->parent->value != NULL)
+					insert_case2(node);
+				else
+					node->color = BLACK;
+			}
+
+			void insert_case2(node_type* node)
+			{
+				/**
+				 * @brief insert_case2
+				 * 새로운 노드의 부모 노드가 black이라면,
+				 * 새로운 노드가 black/red 상관없이 rbtree 속성이 유효하다.
+				 * 삽입된 새로운 노드의 부모 노드가 red일 때, 문제가 발생할 수 있다.
+				 * 삽입되는 새로운 노드의 색은 항상 red
+				 */
+
+				if (node->parent->color == RED)
+					insert_case3(node);
+			}
+
+			void insert_case3(node_type* node)
+			{
+				/**
+				 * @brief insert_case3
+				 * 삽입된 새로운 노드의 부모 및 삼촌 노드가 모두 red인 경우 rbtree의 5번 속성을 위반한다.
+				 * 이를 해결하기 위해, 노드의 부모와 삼촌 노드의 색을 black으로 바꾸고 조상 노드의 색을 red로 바꾼다.
+				 * ->rbtree가 5번 속성을 만족하고 두 자녀가 같은 색을 가질 때, 부모와 두 자녀의 색을 바꿔줘도 5번 속성은 여전히 만족한다.
+				 * 이 경우 조상 노드가 2/4번 속성을 만족하지 않을 수 있다.
+				 * 이를 해결하기 위해 insert_case1~3 까지 재귀적으로 활용한다.
+				 * -> 이 작업은 삽입과정 중 발생하는 유일한 재귀 호출이며, 회전을 하기 전에 적용해야한다.
+				 */
+
+				node_type* uncle = get_uncle(node);
+				node_type* grand;
+				if (uncle->value != NULL && uncle->color == RED)
+				{
+					node->parent->color = BLACK;
+					uncle->color = BLACK;
+					grand = get_grandparent(node);
+					grand->color = RED;
+					insert_case1(grand);
+				}
+				else
+					insert_case4(node);
+			}
+
+			void insert_case4(node_type* node)
+			{
+				/**
+				 * @brief insert_case4
+				 *
+				 * 삽입한 새로운 노드의 부모 노드가 red이고 삼촌 노드이 blaak이며,
+				 * 1)새로운 노드는 부모 노드의 오른쪽 자식이며, 부모 노드는 조상 노드의 왼쪽 자식인 경우
+				 * ->부모 노드와 새로운 노드의 역할을 변경하기 위해 부모를 기준으로 왼쪽 회전을 한다.
+				 * 2)새로운 노드는 부모 노드의 왼쪽 자식이며, 부모 노드는 조상 노드의 오른쪽 자식인 경우
+				 * ->부모 노드와 새로운 노드의 역할을 변경하기 위해 부모를 기준으로 오른쪽 회전을 한다.
+				 *
+				 * insert_case4를 통해 rotate를 한 후 부모 노드를 insert_case5에서 처리하게 된다.
+				 * -> 4번 속성을 만족하기 않았기 떄문
+				 */
+				// If new_node's parent is red and uncle is black,
+				node_type* grand = get_grandparent(node);
+				// new_node is parent's rightChild and parent is grand's leftChild,
+				if (node == node->parent->rightChild && node->parent == grand->leftChild)
+				{
+					rotate_left(node->parent);
+					node = node->leftChild;
+				} // new_node is parent's leftChild and parent is grand's rightChild,
+				else if (node == node->parent->leftChild && node->parent == grand->rightChild)
+				{
+					rotate_right(node->parent);
+					node = node->rightChild;
+				}
+				insert_case5(node);
+			}
+
+			void insert_case5(node_type* node)
+			{
+				/**
+				 * @brief insert_case5
+				 *
+				 * 부모 노드가 red, 삼촌 노드가 black, 새로운 노드는 부모의 왼쪽 자식, 부모 노드가 조상 노드의 왼쪽 자식인 경우
+				 * 조상 노드를 기준으로 오른쪽 회전을 한다.
+				 * -> 회전 후 기존 부모 노드는 자식 노드로 새로운 노드와 기존 조상 노드를 가진다.
+				 * -> 부모 노드가 red, 조상 노드가 black이므로 둘의 색을 바꾸면 4번 속성을 만족한다.
+				 * 5번 속성이 유지되는 이유는 부모 노드를 포함하는 경로는 모드 조상 노드를 지나게 되고,
+				 * 바꾼 후 조상 노드를 포함하는 경로는 모두 부모 노드를 지나기 때문이다.
+				 *
+				 *
+				 *
+				 */
+				node_type* grand = get_grandparent(node);
+				node->parent->color = BLACK;
+				grand->color = RED;
+				if (node == node->parent->leftChild)
+					rotate_right(grand);
+				else
+					rotate_left(grand);
+			}
+
+/**
 			 * @brief rotate
 			 *
 			 * rbtree의 밸런싱을 잡고 rbtree의 속성에 맞게 재조정을 하기위해 사용한다.
@@ -615,7 +815,7 @@ namespace ft
 						parent->rightChild = child;
 				}
 				else
-					_root = child;
+					this->_root = child;
 			}
 
 			//child가 node의 오른쪽 자식일 경우 rotate_left를 한다.
@@ -637,168 +837,55 @@ namespace ft
 						parent->leftChild = child;
 				}
 				else
-					_root = child;
+					this->_root = child;
 			}
 
-			node_type* replace_erase_node(node_type* node)
-			{
-				// node의 leftChild가 있으면, 왼쪽 서브트리에서 최댓값,
-				// node의 leftChild가 없으면, 오른쪽 서브트리에서 최솟값을 찾는다.
-				// 찾은 값의 value를 node에 복사하고, 찾은 그 노드는 삭제해야 하므로 리턴한다.
-				node_type* result;
-				if (node->leftChild->value != NULL)
-				{
-					result = node->leftChild;
-					while (result->rightChild->value != NULL)
-						result = result->rightChild;
-				}
-				else if (node->rightChild->value != NULL)
-				{
-					result = node->rightChild;
-					while (result->leftChild->value != NULL)
-						result = result->leftChild;
-				}
-				else
-					return node;
-
-				node_type* tmp_parent = node->parent;
-				node_type* tmp_left = node->leftChild;
-				node_type* tmp_right = node->rightChild;
-				RBColor tmp_color = node->color;
-
-				// node의 left/rightChild 설정
-				node->leftChild = result->leftChild;
-				if (result->leftChild->value != NULL)
-					result->leftChild->parent = node;
-				node->rightChild = result->rightChild;
-				if (result->rightChild->value != NULL)
-					result->rightChild->parent = node;
-
-				// result를 node->parent의 left/rightChild로 설정
-				if (tmp_parent->leftChild == node)
-					tmp_parent->leftChild = result;
-				else if (tmp_parent->rightChild == node)
-					tmp_parent->rightChild = result;
-
-				if (result == tmp_left)
-				{
-					// result의 형제를 result의 left/rightChild로 연결
-					tmp_right->parent = result;
-					result->rightChild = tmp_right;
-					// node를 result의 left/rightChild로 연결
-					node->parent = result;
-					result->leftChild = node;
-				}
-				else if (result == tmp_right)
-				{
-					tmp_left->parent = result;
-					result->leftChild = tmp_left;
-					node->parent = result;
-					result->rightChild = node;
-				}
-				else
-				{
-					// result와 node가 멀리 떨어진 경우
-					tmp_left->parent = result;
-					result->leftChild = tmp_left;
-					tmp_right->parent = result;
-					result->rightChild = tmp_right;
-					node->parent = result->parent;
-					result->parent->rightChild = node;
-				}
-
-				// result의 parent 연결
-				result->parent = tmp_parent;
-
-				if (result->parent->value == NULL)
-					_root = result;
-				node->color = result->color;
-				result->color = tmp_color;
-
-				return node;
-			}
-
-			void replace_node(node_type* node, node_type* child)
-			{
-				// The case where the parent of node becomes NULL
-				// can be handled in advance so that it does not come into delete_case.
-				child->parent = node->parent;
-				if (node->parent->leftChild == node)
-					node->parent->leftChild = child;
-				else// if (node->parent->rightChild == node)
-					node->parent->rightChild = child;
-			}
-
-			void insert_case1(node_type* node)
-			{
-				// new_node is not root node
-				if (node->parent->value != NULL)
-					insert_case2(node);
-				else
-					node->color = BLACK;
-			}
-
-			void insert_case2(node_type* node)
-			{
-				// If new_node is RED, there is a problem.
-				if (node->parent->color == RED)
-					insert_case3(node);
-			}
-
-			void insert_case3(node_type* node)
-			{
-				// If new_node's parent and uncle is all RED,
-				node_type* uncle = get_uncle(node);
-				node_type* grand;
-				if (uncle->value != NULL && uncle->color == RED)
-				{
-					node->parent->color = BLACK;
-					uncle->color = BLACK;
-					grand = get_grandparent(node);
-					grand->color = RED;
-					insert_case1(grand);
-				}
-				else
-					insert_case4(node);
-			}
-
-			void insert_case4(node_type* node)
-			{
-				// If new_node's parent is RED and uncle is BLACK,
-				node_type* grand = get_grandparent(node);
-				// new_node is parent's rightChild and parent is grand's leftChild,
-				if (node == node->parent->rightChild && node->parent == grand->leftChild)
-				{
-					rotate_left(node->parent);
-					node = node->leftChild;
-				} // new_node is parent's leftChild and parent is grand's rightChild,
-				else if (node == node->parent->leftChild && node->parent == grand->rightChild)
-				{
-					rotate_right(node->parent);
-					node = node->rightChild;
-				}
-				insert_case5(node);
-			}
-
-			void insert_case5(node_type* node)
-			{
-				node_type* grand = get_grandparent(node);
-				node->parent->color = BLACK;
-				grand->color = RED;
-				if (node == node->parent->leftChild)
-					rotate_right(grand);
-				else
-					rotate_left(grand);
-			}
-
+			/**
+			 * @brief delete
+			 * case 1: 삭제하려는 노드의 형제 노드가 블랙, 부모 노드는 레드일 때
+			 * 삭제하려는 노드를 삭제하게 되면, 부모 노드 기준에서 좌측과 우측의 블랙 노드 개수가 맞지 않게 된다. 이 때는 형제 노드를 레드로 색상 변환하고 부모 노드는 블랙으로 바꾸면 된다.
+			 *
+			 * case 2: 삭제하려는 노드의 형제, 부모 노드 모두 블랙일 때
+			 * 형제 노드를 레드로 색상 변환하면 되지만, 블랙 노드가 하나 부족한 것이 부모 노드로 전이된다. 그러므로 여기서는 부모 노드를 문제 노드로 두고 다시 문제를 해결해야 한다.
+			 *
+			 * case 3: 삭제하려는 노드의 형제 노드는 블랙이고 형제 노드의 오른쪽 자식(편의 상 x로 지칭)이 레드일 때
+			 * left 방향 회전을 하고, x의 색상을 블랙으로 바꾼다.
+			 *
+			 * case 4: 삭제하려는 노드의 형제 노드는 블랙이고 형제 노드의 왼쪽 자식(x)이 레드일 때
+			 * 이 경우는 형제 노드를 기점으로 right 회전을 한 후 레드 색상을 x에서 형제에게로 옮긴다. 그렇게 하면 case 3과 같은 상황이 되고, case 3처럼 해결하면 된다.
+			 *
+			 * case 5: 삭제하려는 노드의 형제 노드가 레드인 경우
+			 * 부모 노드를 기준으로 left 로테이션을 한다(삭제 노드가 왼 쪽인 경우). 그 이후 형제 노드는 블랙, 부모 노드는 레드로 색상 변환한다.
+			 *
+			 * @param node
+			 */
 			void delete_case1(node_type* node)
 			{
+				/**
+				 * @brief deleta_case1
+				 *
+				 * 인자로 넘어온 node는 삭제할 노드와 삭제할 노드의 자식을 치환 후,
+				 * 삭제할 노드의 부모가 된 삭제할 노드의 자식 노드이다.
+				 * 치환 후 자식 노드의 부모가 없을 경우, 자식 노드가 root가 되므로 삭제할 노드를 그냥 삭제하면 된다.
+				 */
 				if (node->parent->value != NULL)
 					delete_case2(node);
 			}
 
 			void delete_case2(node_type* node)
 			{
+				/**
+				 * @brief delete_case2
+				 *
+				 * node(치환한 자식 노드)의 형제 노드가 red인 case
+				 * 부모의 자식인 형제 노드가 red이므로 부모 노드는 black이다.
+				 * 이 경우 부모 노드와 형제 노드의 색을 바꾸고 부모 노드를 기준으로 왼쪽으로 회전하면
+				 * 자식 노드의 조상 노드는 형제 노드가 된다.
+				 * 아직 5번 속성을 만족하지 않으며,
+				 * black인 자식 노드와 red인 부모 노드를 가지고 있으므로 delete_case4,5,6을 진행한다.
+				 * 새로운 형제 노드는 red였던 형제 노드(조상 노드)의 자식 노드였으므로 black이다.
+				 * (red의 자식은 black이라는 속성)
+				 */
 				node_type* sibling = get_sibling(node);
 				if (sibling->color == RED)
 				{
@@ -812,8 +899,32 @@ namespace ft
 				delete_case3(node);
 			}
 
+			/**
+			 * @brief case
+			 *
+			 * delete_case2를 통과하면 자식 노드와 형제 노드는 반드시 black이 된다.
+			 * 통과 후 나오는 경우의 수는 아래의 case에서 해결 가능하다.
+			 * 부모, 형제의 왼쪽, 형제의 오른쪽 = B,B,B -> case3
+			 * 부모, 형제의 왼쪽, 형제의 오른쪽 = R,B,B -> case4
+			 * 부모, 형제의 왼쪽, 형제의 오른쪽 = B,R,B / R,R,B -> case5
+			 * 부모, 형제의 왼쪽, 형제의 오른쪽 = B,B,R / R,B,R / B,R,R / R,R,R -> case6
+			 *
+			 * @param node
+			 */
 			void delete_case3(node_type* node)
 			{
+				/**
+				 * @brief delete_case3
+				 *
+				 * 부모 노드와 형제 노드, 형제 노드의 자식이 black인 case.
+				 * 5번 속성 위반
+				 * 이 경우 간단히 형제 노드를 red로 바꿔주기만 하면 된다.
+				 * 그러면 형제 노드를 지나는 모든 경로들은 하나의 black node를 적게 가지게 된다.
+				 * 이는 삭제할 노드를 삭제하는 과정에서 그 자식 노드가 지나느 모든 경로가 하나 줄어들게 되므로
+				 * 양쪽은 같은 수의 black node경로를 가지게 된다.
+				 * 그러나 부모 노드를 지나는 모든 경로는 부모 노드를 지나지 않는 모든 경로에 대해 black노드를 하나 덜 가지게 되어 5번 속성을 위반하게 된다.
+				 * 이를 해결하기위해 delete_case1부터 시작하는 rebalancing 과정을 수행해야 한다.
+				 */
 				node_type* sibling = get_sibling(node);
 				if (node->parent->color == BLACK && sibling->color == BLACK && sibling->leftChild->color == BLACK && sibling->rightChild->color == BLACK)
 				{
@@ -824,8 +935,20 @@ namespace ft
 					delete_case4(node);
 			}
 
+
 			void delete_case4(node_type* node)
 			{
+				/**
+				 * @brief delete_case4
+				 *
+				 * 형제 노드와 형제 노드의 자식은 black, 부모 노드는 red인 case
+				 * 부모 노드와 형제 노드의 색을 바꿔주면 된다.
+				 * 형제 노드를 지나는 경로의 black수는 영향을 주지않지만,
+				 * 자식 노드를 지나는 경로에 대해서 black수를 1증가 시칸다.
+				 *
+				 *
+				 * @param node
+				 */
 				node_type* sibling = get_sibling(node);
 				if (node->parent->color == RED && sibling->color == BLACK && sibling->leftChild->color == BLACK && sibling->rightChild->color == BLACK)
 				{
@@ -838,6 +961,14 @@ namespace ft
 
 			void delete_case5(node_type* node)
 			{
+				/**
+				 * @brief delete_case5
+				 *
+				 * 형제 노드가 black, 형제 노드의 왼쪽 자식이 red, 오른쪽 자식이 black, 형제 노드가 부모의 오른쪽 자식인 case
+				 * 형제 노드를 오른쪽 회전 후 형제 노드의 왼쪽 자식을 자신의 부모 노드이자, 새로운 형제 노드로 만든다.
+				 * 기존 형제 노드의 색을 부모 노드의 색과 바꾼다.
+				 *
+				 */
 				node_type* sibling = get_sibling(node);
 				node_type* tmp = node->parent;
 				if (sibling->color == BLACK)
@@ -861,6 +992,14 @@ namespace ft
 
 			void delete_case6(node_type* node)
 			{
+				/**
+				 * @brief delete_case6
+				 *
+				 * 형제 노드가 black, 형제 노드의 오른쪽 자식이 red, 형제 노드가 부모의 오른쪽 자식인 case
+				 * 부모 노드를 기준으로 왼쪽 회전 후 형제 노드가 부모 노드의 부모가 되게 한다.
+				 * 그 후 부모 노드와 형제 노드의 색을 바꾸고, 형제 노드의 오른쪽 자식을 black으로 바꾼다.
+				 *
+				 */
 				node_type* sibling = get_sibling(node);
 				sibling->color = node->parent->color;
 				node->parent->color = BLACK;

@@ -40,6 +40,7 @@
  * 하지만 마지막 위치에 데이터를 추가/삭제하는 것은 간단하며, index를 통해 데이터에 바로 접근이 가능하다.
  * 데이터의 위치만 알고 있다면 빠르게 데이터를 찾을 수 있다.
  * 하지만 데이터의 위치를 모르는 경우 선형 탐색을 통해 데이터를 찾아야하며, 시간복잡도는 O(N)이다.
+ *
  * Allocator
  *
  * Allocator는 std::allocator<T> class를 사용한다. need #include <memory> header

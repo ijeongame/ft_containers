@@ -8,6 +8,23 @@ namespace ft
 	/**
 	 * @brief map class
 	 *
+	 * map은 연관 컨테이너 중 하나이다. 연관이란 말은 key값과 value가 서로 관련이 있다는 의미이다.
+	 * map은 pair<key, value>를 사용해 원소를 저장하는데, key를 기준으로 데이터를 정렬한다.
+	 * 원소를 추가하거나 삭제할 때는 key값을 기준으로 한다.
+	 *
+	 * 연관 컨테이너는 찾고자 하는 원소를 빠르게 찾기위해 사용된다.
+	 * 연관 컨테이너에서 원소를 찾는데 걸리는 시간복잡도는 n*log2(n)이다.
+	 * 연관 컨테이너는 원소를 삽입하는데 기본 로그 시간복잡도를 가지고
+	 * 원소가 항상 정렬된 상태가 되도록 하는데 시간을 더 쓰기 때문에 찾는 시간을 단축할 수 있다.
+	 *
+	 * map은 이진탐색트리(bst)의 일종인 red-black 트리로 구성되어있다.
+	 * map의 특징
+	 * Associativ - 컨테이너의 요소는 절대 위치가 아닌 key값을 통해 참조된다.
+	 * Ordered - 컨테이너는 항상 정해진 순서를 따르고 삽입되는 모든 요소는 이 순서를 따라야 한다.
+	 * Map - 각 요소는 key에 mapping된 value에 연결. key는 value가 어떤 값인지를 나타낸다.
+	 * Unique keys - 컨테이너 안에 2개의 key가 존재할 수 없다.
+	 * Allocator-aware - 컨테이너는 allocator를 이용해 동적으로 공간을 할당한다.
+	 *
 	 * @tparam Key	Type of the keys.(key_type)
 	 * @tparam T	Type of the mapped value.(mapped_type)
 	 * @tparam Compare	A binary predicate that takes two element keys as arguments and returns a bool.(key_compare)

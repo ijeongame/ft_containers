@@ -157,7 +157,6 @@ namespace ft
 	/**
 	 * predicate
 	 *
-	 * pred
 	 * binary predicate which returns ​true if the elements should be treated as equal.
 	 * 두 요소를 인수로 받아들이고(같은 순서로 두 시퀀스 각각 중 하나) 부울로 변환 가능한 값을 반환하는 이진 함수입니다.
 	 * 반환되는 값은 요소가 이 함수의 컨텍스트에서 일치하는 것으로 간주되는지 여부를 나타냅니다.
