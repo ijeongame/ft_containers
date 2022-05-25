@@ -298,7 +298,8 @@ namespace ft
 			 * 삭제되는 색이 red라면 어떤한 속성도 위반하지 않는다!
 			 *
 			 * 삭제되는 색이 black이라면 2,4,5번 속성을 위반할 가능성이 있다.
-			 * - black노드를 삭제하면 red가 중복해서 나오건, 자손 nil노드까지의 black노드의 수가 다를 수 있다.
+			 * -> black을 삭제하더라도 child node가 red라면 해당 노드를 삭제 후 chlid node를 red로 바꺼주면 문제가 없다.
+			 * -> black노드를 삭제하면 red가 중복해서 나오건, 자손 nil노드까지의 black노드의 수가 다를 수 있다.
 			 *
 			 * 4.재조정은 어떻게 할 것인가?
 			 * 해결방식
@@ -316,9 +317,9 @@ namespace ft
 			 * case4. doubly-black의 (오른쪽) 형제가 black & 그 형제의 (오른쪽) 자녀가 red
 			 * -> red를 doubly black 위로 옮기고 옮긴 extra black을 전달해서 red-and-black으로 만든 후 black으로 바꿔서 해결 -> 어떻게 옮길 것인가?!
 			 * -> 결과론적으로 간략하게 줄일 수 있다.
-			 * -> 오른쪽 형제는 부모의 색으로, 오른쪽 형제의 (오른쪽) 자녀는 black으로 부모는 black으로 바꾼 후에 부모를 기준으로 (왼쪽)으로 회전하여 해결 \
+			 * -> (오른쪽) 형제는 부모의 색으로, 오른쪽 형제의 (오른쪽) 자녀는 black으로 부모는 black으로 바꾼 후에 부모를 기준으로 (왼쪽)으로 회전하여 해결
 			 *
-			 * case3. doubly-black의 (오른쪽) 형제가 black & 그 형제의 (왼쪽) 자녀가 red & 그 형제의 오른쪽 자녀는 black
+			 * case3. doubly-black의 (오른쪽) 형제가 black & 그 형제의 (왼쪽) 자녀가 red & 그 형제의 (오른쪽) 자녀는 black
 			 * -> doubly-black의 형제의 (오른쪽) 자녀가 red가 되게만들어 case4를 적용하여 해결
 			 *
 			 * case2. doubly-black의 (오른쪽) 형제가 black & 그 형제의 두 자녀가 black
@@ -349,7 +350,7 @@ namespace ft
 				//node의 왼쪽 서브트리에서 최댓값 / 오른쪽 서브트리에서 최솟값을 찾은 후 위치를 변경한다.
 				//기존 target 위치에는 대체할 node가 들어가있다.
 				//target 노드 자체를 삭제해야 한다.
-				//위치변경우 target은 child에 non-nil 노드가 최대 1개이다.
+				//위치변경 후 target은 child에 non-nil 노드가 최대 1개이다.
 				//child는 target노드의 non-nil child가 우선이다.
 				node_type* target = replace_erase_node(node);
 				node_type* child;
@@ -387,8 +388,8 @@ namespace ft
 				swap(_root, x._root);
 				swap(_nil, x._nil);
 				swap(_comp, x._comp);
-				swap(_size, x._size);
 				swap(_node_alloc, x._node_alloc);
+				swap(_size, x._size);
 			}
 
 			void clear(node_type* node = NULL)
@@ -593,9 +594,18 @@ namespace ft
 
 			node_type* replace_erase_node(node_type* node)
 			{
-				// node의 leftChild가 있으면, 왼쪽 서브트리에서 최댓값,
-				// node의 leftChild가 없으면, 오른쪽 서브트리에서 최솟값을 찾는다.
-				// 찾은 값의 value를 node에 복사하고, 찾은 그 노드는 삭제해야 하므로 리턴한다.
+				/**
+				 * @brief replace and erase
+				 * 이진 탐색 트리에서 삭제를 수행할 때에는 왼쪽 서브트리에서의 최댓값이나,
+				 * 오른쪽 서브트리에서의 최솟값을 삭제한 노드의 위치에 삽입한다는 것.
+				 * 삭제한 노드를 대체할 노드에는 반드시 1개의 자식 노드만 있다는 점이다.
+				 * 그 이유는 즉슨, 자식 2개를 보유한 노드일 경우,
+				 * 왼쪽 자식 < 대체 노드 < 오른쪽 자식이라는 결론이 도출되므로, 자식 2개를 보유할 가능성은 절대적으로 0이라는 것이다.
+				 * ->node의 leftChild가 있으면, 왼쪽 서브트리에서 최댓값,
+				 * ->node의 leftChild가 없으면, 오른쪽 서브트리에서 최솟값을 찾는다.
+				 * 찾은 값의 value를 node에 복사하고, 찾은 그 노드는 삭제해야 하므로 리턴한다.
+				 */
+
 				node_type* res;
 				if (node->leftChild->value != NULL)
 				{
@@ -840,33 +850,16 @@ namespace ft
 					this->_root = child;
 			}
 
-			/**
-			 * @brief delete
-			 * case 1: 삭제하려는 노드의 형제 노드가 블랙, 부모 노드는 레드일 때
-			 * 삭제하려는 노드를 삭제하게 되면, 부모 노드 기준에서 좌측과 우측의 블랙 노드 개수가 맞지 않게 된다. 이 때는 형제 노드를 레드로 색상 변환하고 부모 노드는 블랙으로 바꾸면 된다.
-			 *
-			 * case 2: 삭제하려는 노드의 형제, 부모 노드 모두 블랙일 때
-			 * 형제 노드를 레드로 색상 변환하면 되지만, 블랙 노드가 하나 부족한 것이 부모 노드로 전이된다. 그러므로 여기서는 부모 노드를 문제 노드로 두고 다시 문제를 해결해야 한다.
-			 *
-			 * case 3: 삭제하려는 노드의 형제 노드는 블랙이고 형제 노드의 오른쪽 자식(편의 상 x로 지칭)이 레드일 때
-			 * left 방향 회전을 하고, x의 색상을 블랙으로 바꾼다.
-			 *
-			 * case 4: 삭제하려는 노드의 형제 노드는 블랙이고 형제 노드의 왼쪽 자식(x)이 레드일 때
-			 * 이 경우는 형제 노드를 기점으로 right 회전을 한 후 레드 색상을 x에서 형제에게로 옮긴다. 그렇게 하면 case 3과 같은 상황이 되고, case 3처럼 해결하면 된다.
-			 *
-			 * case 5: 삭제하려는 노드의 형제 노드가 레드인 경우
-			 * 부모 노드를 기준으로 left 로테이션을 한다(삭제 노드가 왼 쪽인 경우). 그 이후 형제 노드는 블랙, 부모 노드는 레드로 색상 변환한다.
-			 *
-			 * @param node
-			 */
 			void delete_case1(node_type* node)
 			{
 				/**
 				 * @brief deleta_case1
 				 *
-				 * 인자로 넘어온 node는 삭제할 노드와 삭제할 노드의 자식을 치환 후,
-				 * 삭제할 노드의 부모가 된 삭제할 노드의 자식 노드이다.
+				 * 2번 속성을 위반한 case
+				 * 인자로 넘어온 node는 삭제할 노드와 삭제할 노드의 자식을 치환 후, 삭제할 노드의 부모가 된 삭제할 노드의 자식 노드이다.
 				 * 치환 후 자식 노드의 부모가 없을 경우, 자식 노드가 root가 되므로 삭제할 노드를 그냥 삭제하면 된다.
+				 *
+				 * 이 경우가 아닌 경우, delete_case2로 넘어간다.
 				 */
 				if (node->parent->value != NULL)
 					delete_case2(node);
@@ -875,14 +868,16 @@ namespace ft
 			void delete_case2(node_type* node)
 			{
 				/**
-				 * @brief delete_case2
+				 * @brief delete_case2 -> case1
 				 *
 				 * node(치환한 자식 노드)의 형제 노드가 red인 case
-				 * 부모의 자식인 형제 노드가 red이므로 부모 노드는 black이다.
-				 * 이 경우 부모 노드와 형제 노드의 색을 바꾸고 부모 노드를 기준으로 왼쪽으로 회전하면
-				 * 자식 노드의 조상 노드는 형제 노드가 된다.
+				 * ->부모의 자식인 형제 노드가 red이므로 부모 노드는 black이다.
+				 *
+				 * ->부모 노드와 형제 노드의 색을 바꾸고
+				 * ->부모 노드를 기준으로 왼쪽으로 회전하면 자식 노드의 조상 노드는 형제 노드가 된다.
+				 *
 				 * 아직 5번 속성을 만족하지 않으며,
-				 * black인 자식 노드와 red인 부모 노드를 가지고 있으므로 delete_case4,5,6을 진행한다.
+				 * black인 자식 노드와 red인 부모 노드를 가지고 있으므로 delete_case4,5,6(case2,3,4)을 진행한다.
 				 * 새로운 형제 노드는 red였던 형제 노드(조상 노드)의 자식 노드였으므로 black이다.
 				 * (red의 자식은 black이라는 속성)
 				 */
@@ -911,19 +906,31 @@ namespace ft
 			 *
 			 * @param node
 			 */
+
+			/**
+			 * @brief delete_case3,4
+			 *
+			 * 형제 노드, 형제 노드의 자식 전부 black인 경우에서
+			 * 부모 노드가 red, black인 경우 나눠서 생각
+			 *
+			 * @param node
+			 */
 			void delete_case3(node_type* node)
 			{
 				/**
-				 * @brief delete_case3
+				 * @brief delete_case3 -> case2
 				 *
 				 * 부모 노드와 형제 노드, 형제 노드의 자식이 black인 case.
-				 * 5번 속성 위반
-				 * 이 경우 간단히 형제 노드를 red로 바꿔주기만 하면 된다.
-				 * 그러면 형제 노드를 지나는 모든 경로들은 하나의 black node를 적게 가지게 된다.
-				 * 이는 삭제할 노드를 삭제하는 과정에서 그 자식 노드가 지나느 모든 경로가 하나 줄어들게 되므로
-				 * 양쪽은 같은 수의 black node경로를 가지게 된다.
-				 * 그러나 부모 노드를 지나는 모든 경로는 부모 노드를 지나지 않는 모든 경로에 대해 black노드를 하나 덜 가지게 되어 5번 속성을 위반하게 된다.
-				 * 이를 해결하기위해 delete_case1부터 시작하는 rebalancing 과정을 수행해야 한다.
+				 *
+				 * 형제 노드를 레드로 색상 변환하면 되지만,
+				 * 블랙 노드가 하나 부족한 것이 부모 노드로 전이된다.
+				 * 그러므로 여기서는 부모 노드를 문제 노드로 두고 다시 문제를 해결해야 한다.
+				 *
+				 * -> 간단히 형제 노드를 red로 바꿔주기만 하면 된다.
+				 * -> 그러면 형제 노드를 지나는 모든 경로들은 하나의 black node를 적게 가지게 된다.
+				 * -> 이는 삭제할 노드를 삭제하는 과정에서 그 자식 노드가 지나는 모든 경로가 하나 줄어들게 되므로 양쪽은 같은 수의 black node경로를 가지게 된다.
+				 * -> 그러나 부모 노드를 지나는 모든 경로는 부모 노드를 지나지 않는 모든 경로에 대해 black노드를 하나 덜 가지게 되어 5번 속성을 위반하게 된다.
+				 * -> 이를 해결하기위해 delete_case1부터 시작하는 rebalancing 과정을 수행해야 한다.
 				 */
 				node_type* sibling = get_sibling(node);
 				if (node->parent->color == BLACK && sibling->color == BLACK && sibling->leftChild->color == BLACK && sibling->rightChild->color == BLACK)
@@ -939,13 +946,16 @@ namespace ft
 			void delete_case4(node_type* node)
 			{
 				/**
-				 * @brief delete_case4
+				 * @brief delete_case4 -> case2
 				 *
 				 * 형제 노드와 형제 노드의 자식은 black, 부모 노드는 red인 case
-				 * 부모 노드와 형제 노드의 색을 바꿔주면 된다.
-				 * 형제 노드를 지나는 경로의 black수는 영향을 주지않지만,
-				 * 자식 노드를 지나는 경로에 대해서 black수를 1증가 시칸다.
 				 *
+				 * 삭제하려는 노드를 삭제하게 되면,
+				 * 부모 노드 기준에서 좌측과 우측의 블랙 노드 개수가 맞지 않게 된다.
+				 * 이 때는 형제 노드를 레드로 색상 변환하고 부모 노드는 블랙으로 바꾸면 된다.
+				 * -> 부모 노드와 형제 노드의 색을 바꿔주면 된다.
+				 * -> 형제 노드를 지나는 경로의 black수는 영향을 주지않지만,
+				 * -> 자식 노드를 지나는 경로에 대해서 black수를 1증가 시칸다.
 				 *
 				 * @param node
 				 */
@@ -962,15 +972,19 @@ namespace ft
 			void delete_case5(node_type* node)
 			{
 				/**
-				 * @brief delete_case5
+				 * @brief delete_case5 -> 위의 설명한 case3
 				 *
-				 * 형제 노드가 black, 형제 노드의 왼쪽 자식이 red, 오른쪽 자식이 black, 형제 노드가 부모의 오른쪽 자식인 case
-				 * 형제 노드를 오른쪽 회전 후 형제 노드의 왼쪽 자식을 자신의 부모 노드이자, 새로운 형제 노드로 만든다.
-				 * 기존 형제 노드의 색을 부모 노드의 색과 바꾼다.
+				 * 형제 노드가 black, 형제 노드의 (왼쪽) 자식이 red, (오른쪽) 자식이 black, 형제 노드가 부모의 오른쪽 자식인 case
+				 *
+				 * 색 red를 형제 노드의 오른쪽으로 옮겨 case4, delete_cas6를 적용하여 해결
+				 * -> 형제 노드와 형제 노드의 왼쪽 자식과 색을 바꾼 후 형제 노드를 기준으로 오른쪽으로 회전
+				 * -> 형제 노드를 오른쪽 회전 후 형제 노드의 왼쪽 자식을 형제 노드 자신의 부모 노드이자, 새로운 형제 노드로 만든다.
+				 * -> 기존 형제 노드의 색을 부모 노드(기존의 형제 노드의 왼쪽 자식)의 색과 바꾼다.
+				 * -> delete_case6를 적용하여 해결
 				 *
 				 */
 				node_type* sibling = get_sibling(node);
-				node_type* tmp = node->parent;
+
 				if (sibling->color == BLACK)
 				{
 					if (node == node->parent->leftChild && sibling->rightChild->color == BLACK && sibling->leftChild->color == RED)
@@ -986,19 +1000,24 @@ namespace ft
 						rotate_left(sibling);
 					}
 				}
-				node->parent = tmp;
 				delete_case6(node);
 			}
 
 			void delete_case6(node_type* node)
 			{
 				/**
-				 * @brief delete_case6
+				 * @brief delete_case6 -> 위의 설명한 case4
 				 *
-				 * 형제 노드가 black, 형제 노드의 오른쪽 자식이 red, 형제 노드가 부모의 오른쪽 자식인 case
-				 * 부모 노드를 기준으로 왼쪽 회전 후 형제 노드가 부모 노드의 부모가 되게 한다.
-				 * 그 후 부모 노드와 형제 노드의 색을 바꾸고, 형제 노드의 오른쪽 자식을 black으로 바꾼다.
+				 * 형제 노드가 black, 형제 노드의 (오른쪽) 자식이 red, 형제 노드가 부모의 (오른쪽) 자식인 case
+				 * -> 삭제하려는 노드의 형제 노드는 블랙이고 형제 노드의 오른쪽 자식이 레드일 때
 				 *
+				 * 색 red를 자식 노드의 위로 옮긴 후 red-and-black을 만들어 제거
+				 * -> 형제 노드의 색을 부모 노드의 색으로, 형제의 오른쪽 자식을 black으로, 부모는 black으로 바꾼 후, 부모를 기준으로 왼쪽으로 회전
+				 * -> 부모 노드를 기준으로 왼쪽 회전 후 형제 노드가 부모 노드의 부모가 되게 한다.
+				 * -> 그 후 부모 노드와 형제 노드의 색을 바꾸고, 형제 노드의 오른쪽 자식을 black으로 바꾼다.
+				 *
+				 * 결과론적인 방법
+				 * (오른쪽) 형제는 부모의 색으로, (오른쪽) 형제의 (오른쪽) 자녀는 black으로 부모는 black으로 바꾼 후에 부모를 기준으로 (왼쪽)으로 회전하여 해결
 				 */
 				node_type* sibling = get_sibling(node);
 				sibling->color = node->parent->color;

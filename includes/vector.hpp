@@ -235,6 +235,8 @@ namespace ft
 		/**
 		 * @brief Iterator
 		 * cbegin, cend, crbegin, crend is c++11
+		 * begin : 벡터의 첫 번째 요소에 대한 반복자 반환
+		 * end : 벡터의 끝(마지막 요소 다음)에 대한 반복자 반환
 		 */
 		iterator begin()
 		{
@@ -347,7 +349,13 @@ namespace ft
 		/**
 		 * @brief elememt access
 		 */
-		//access element
+
+		/**
+		 * @brief operator[]
+		 *
+		 * 배열처럼 접근하여 인덱스에 대한 참조를 반환
+		 */
+
 		reference operator[](size_type n)
 		{
 			return (*(this->_start + n));
@@ -361,7 +369,7 @@ namespace ft
 
 		/**
 		 * @brief
-		 * 벡터의 n 위치에 있는 요소에 대한 참조를 반환합니다.
+		 * 벡터의 n위치에 있는 요소에 대한 참조를 반환합니다. n은 값이 아니라 위치!
 		 * 이 함수는 n이 벡터에서 유효한 요소의 범위 내에 있는지 여부를 자동으로 검사하고 그렇지 않으면 out_of_range 예외를 던진다.
 		 * 이는 out_of_range 대해 검사하지 않는 멤버 연산자[]와 대조된다.
 		 *

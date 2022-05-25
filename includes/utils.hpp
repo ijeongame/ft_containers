@@ -15,22 +15,8 @@
 namespace ft
 {
 	/**
-	 * @brief vector utils
-	 *
+	 * @brief utils
 	 */
-	// const class nullptr_t{
-	// public:
-	// 	// Convertible to any type of null non-member pointer,
-	// 	template<class T>
-	// 	operator T*() const { return 0; }
-
-	// 	// or any type of null member pointer.
-	// 	template<class C, class T>	// any type T for any class type C
-	// 	operator T C::*() const { return 0; }
-
-	// private:
-	// 	void operator&() const;	// Can't take address of nullptr.
-	// } NULL = {};
 
 	/**
 	 * @brief distance
@@ -49,14 +35,18 @@ namespace ft
 			n++;
 		return (n);
 	}
+
 	/**
 	 * enable_if
 	 *
+	 * SFINAE : 템플릿 인자 치환에 실패한 경우, 컴파일러는 이 오류를 무시하고 그냥 오버로딩 후보에서 제외하면 된다 라고 명시되어 있다.
+	 * 치환 실패는 오류가 아니다 - Substitution Failure Is Not An Error
 	 * Cond가 true인 경우를 specialize하여 type을 typename으로 사용할 수 있게한다.
-	 * enable_if는 특정 타입으로 템플릿을 제한하여 사용하고 싶거나 타입별로 분기를 한다거나 할 때 사용할 수 있다.
-	 * enable_if의 템플릿 첫번째 인자로 true가 오면, enable_if의 구주체 안에는 type이라는 자료형이 생긴다.
-	 * 따라서 enable_if의 템플릿 첫번쨰 인자로 boolean을 반환하는 구문을 넣어두고 해당구문에서 판별을 요청하면,
-	 * 결과값에 따라 type이 생기거나 생기지않는 것을 이용할 수 있다.
+	 * ->enable_if는 특정 타입으로 템플릿을 제한하여 사용하고 싶거나 타입별로 분기를 한다거나 할 때 사용할 수 있다.
+	 * ->enable_if의 템플릿 첫번째 인자로 true가 오면, enable_if의 구조체 안에는 type이라는 자료형이 생긴다.
+	 * ->따라서 enable_if의 템플릿 첫번째 인자로 boolean을 반환하는 구문을 넣어두고 해당구문에서 판별을 요청하면,
+	 * ->결과값에 따라 type이 생기거나 생기지않는 것을 이용할 수 있다.
+	 *
 	 * template<typename T, std::enable_if<std::is_integral<T>::value, int>:: type = 0>
 	 * void foo(const T& bar) { isInt(); }
 	 * is_integral 는 T가 integral계열인지 true, false로 반환한다. integral 계열일 때만 ::type 호출이 가능하다.

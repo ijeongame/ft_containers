@@ -8,64 +8,41 @@ namespace ft
 	/**
 	 * @brief map class
 	 *
-	 * map은 연관 컨테이너 중 하나이다. 연관이란 말은 key값과 value가 서로 관련이 있다는 의미이다.
-	 * map은 pair<key, value>를 사용해 원소를 저장하는데, key를 기준으로 데이터를 정렬한다.
-	 * 원소를 추가하거나 삭제할 때는 key값을 기준으로 한다.
+	 * set은 연관 컨테이너 중 하나
+	 * 노드 기반 컨테이너이며, bat로 구현되어 있다.
+	 * key라고 불리는 원소들의 집합으로 이루어져 있다.
+	 * key값은 중복이 불가능하다.
+	 * 원소가 insert 멤버함수에 의해 삽입되면, 자동으로 정렬된다.
+	 * default 정렬구조는 (less)오름차순이다.
 	 *
-	 * 연관 컨테이너는 찾고자 하는 원소를 빠르게 찾기위해 사용된다.
-	 * 연관 컨테이너에서 원소를 찾는데 걸리는 시간복잡도는 n*log2(n)이다.
-	 * 연관 컨테이너는 원소를 삽입하는데 기본 로그 시간복잡도를 가지고
-	 * 원소가 항상 정렬된 상태가 되도록 하는데 시간을 더 쓰기 때문에 찾는 시간을 단축할 수 있다.
-	 *
-	 * map은 이진탐색트리(bst)의 일종인 red-black 트리로 구성되어있다.
-	 * map의 특징
-	 * Associative - 컨테이너의 요소는 절대 위치가 아닌 key값을 통해 참조된다.
-	 * Ordered - 컨테이너는 항상 정해진 순서를 따르고 삽입되는 모든 요소는 이 순서를 따라야 한다.
-	 * Map - 각 요소는 key에 mapping된 value에 연결. key는 value가 어떤 값인지를 나타낸다.
-	 * Unique keys - 컨테이너 안에 2개의 key가 존재할 수 없다.
-	 * Allocator-aware - 컨테이너는 allocator를 이용해 동적으로 공간을 할당한다.
+	 * map과 거의 동일하지만, map은 pair를 통해 key와 value를 쌍으로 요소를 저장했지만, set의 경우 key가 곧 value 그 자체이다.
 	 *
 	 * @tparam Key	Type of the keys.(key_type)
-	 * @tparam T	Type of the mapped value.(mapped_type)
+	 * @tparam T	Type of the mapped value.(mapped_type) -> set에서는 사용하지 않는다.
 	 * @tparam Compare	A binary predicate that takes two element keys as arguments and returns a bool.(key_compare)
 	 * @tparam Alloc	Type of the allocator object used to define the storage allocation model.(allocator_type)
 	 */
-	template < class Key, class T, class Compare = ft::less<Key>, class Alloc = std::allocator< ft::pair<const Key, T> > >
-	class map {
+	template < class Key, class Compare = ft::less<Key>, class Alloc = std::allocator<Key> >
+	class set {
 		public :
 			/**
 			 * @brief Member types
 			 */
-			typedef const Key	key_type;
-			typedef T	mapped_type;
-			typedef ft::pair<key_type, mapped_type>	value_type;
+			typedef Key	key_type;
+			typedef Key	value_type;
 			typedef Compare	key_compare;
-
 			/**
 			 * @brief value_compare
 			 *
-			 * 두 개의 요소를 비교하여 첫 번째 요소의 키가 두 번째 요소보다 이전인지 확인하는데 사용할 수 있는 comp 객체
-			 * 반환되는 comp 객체는 멤버타입 map::value_compare의 객체로 내부 comp 객체를 사용하여,
-			 * 적절한 비교함수 클래스를 생성하는 중첩 클래스
+			 * 연산자< 와 동일하게 반환되는 더 작은 객체.
+			 * 컨테이너 요소들과 같은 유형의 두 개의 인수를 취하는 함수 포인터, 또는 함수 객체이며
+			 * 첫 번째 요소가 두 번째 요소보다 작으면 true, 그렇지 않으면 false를 반환한다.
+			 * value_compare가 false를 반환하는 경우 동등한 것으로 간주된다.
+			 *
+			 * set container에서 요소를 정렬하는 key는 곧 value와 같으므로,
+			 * value_comp와 형제 멤버함수 key_compare는 동일하다.
 			 */
-			class value_compare : binary_function<value_type, value_type, bool>
-			{
-				protected:
-					Compare comp;
-					value_compare(Compare c) : comp(c) {}
-				// constructed with map's comparison object
-				public:
-					typedef value_type	first_argument_type;
-					typedef value_type	second_argument_type;
-					typedef bool		result_type;
-					//construct a new value_compare object
-					value_compare() : comp() {}
-					//compares two values of type value_type
-					bool operator()(const value_type& lhs, const value_type& rhs) const
-					{
-						return (comp(lhs.first, rhs.first));
-					}
-			};
+			typedef Compare	value_compare;
 			typedef Alloc	allocator_type;
 			typedef typename allocator_type::reference			reference;
 			typedef typename allocator_type::const_reference	const_reference;
@@ -86,19 +63,19 @@ namespace ft
 		private:
 			allocator_type	_alloc;
 			rb_tree			_tree;
-			key_compare	_comp;
+			key_compare		_comp;
 
 		public:
 			/**
 			 * @brief Member functions
 			 */
 			//Empty constructor
-			explicit map (const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()) : _alloc(alloc), _tree(), _comp(comp) {}
+			explicit set (const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()) : _alloc(alloc), _tree(), _comp(comp) {}
 
 			//Range constructor
 			//[first,last) 범위와 동일한 수의 요소로 컨테이너를 구성하고 각 요소는 해당 범위의 해당 요소로 구성한다
 			template <class InputIterator>
-			map (InputIterator first, InputIterator last,
+			set (InputIterator first, InputIterator last,
 					const key_compare& comp = key_compare(),
 					const allocator_type& alloc = allocator_type(),
 					typename ft::enable_if<!ft::is_integral<InputIterator>::value, InputIterator>::type* = NULL) : _alloc(alloc), _tree(), _comp(comp)
@@ -108,16 +85,16 @@ namespace ft
 
 			//Copy constructor
 			//x에 있는 각 요소의 복사본을 사용하여 컨테이너를 구성한다
-			map (const map& x) : _alloc(x._alloc), _tree(), _comp(x._comp)
+			set (const set& x) : _alloc(x._alloc), _tree(), _comp(x._comp)
 			{
 				*this = x;
 			}
 
 			//Destructor
-			~map() {}
+			~set() {}
 
 			//Assignment operator
-			map& operator=(const map& x)
+			set& operator=(const set& x)
 			{
 				if (this != &x)
 					this->_tree.copy(x._tree);
@@ -183,11 +160,15 @@ namespace ft
 			 * k가 컨테이너에 있는 요소의 키와 일치하지 않으면 함수는 해당 키를 사용하여 새 요소를 삽입하고 매핑된 값에 대한 참조를 반환한다.
 			 * 이렇게 하면 요소에 매핑되니 값이 할당되지 않더라도(기본 생성자를 사용하여 생성됨) 항상 컨테이너 크기가 1씩 증가한다.
 			 * at과 비슷한 역할을 하지만 map::at은 키가 있는 요소가 존재할 때 같은 동작을 하지만 그렇지 않으면 에러를 발생시킨다. -> c++11에서 사용
+			 *
+			 * ->이렇게 map에서는 k가 컨테이너에 저장되어있는 요소를 찾아서 매핑된 값에 대한 참조를 반환한다.
+			 * ->하지만 set에서는 key == value이므로 key값을 찾으면 곧 value값이기 때문에
+			 * ->해당 연산자가 필요없으며, 지원하지 않는다.
 			 */
-			mapped_type& operator[](const key_type& k)
-			{
-				return (*(_tree.insert(ft::make_pair(k, mapped_type())).first)).value->second;
-			}
+			// mapped_type& operator[](const key_type& k)
+			// {
+			// 	return (*(_tree.insert(ft::make_pair(k, mapped_type())).first)).value->second;
+			// }
 
 			/**
 			 * @brief Modifiers
@@ -270,7 +251,7 @@ namespace ft
 			//nil노드 erase실행 시 실패.
 			size_type erase(const key_type& k)
 			{
-				return (this->_tree.erase(_tree.find(value_type(k, mapped_type()))));
+				return (this->_tree.erase(_tree.find(value_type(k))));
 			}
 
 			void erase(iterator first, iterator last)
@@ -285,7 +266,7 @@ namespace ft
 			 * 같은 유형의 다른 맵인 x의 요소로 기존 맵 요소를 교환한다. 이 때, 사이즈가 다를 수 있다.
 			 * 동일한 이름의 swap을 가진 non-member function이 존재하며, 이 멤버 함수와 같이 동작하는 최적화로 알고리즘을 오버로드한다.
 			 */
-			void swap(map& x)
+			void swap(set& x)
 			{
 				this->_tree.swap(x._tree);
 			}
@@ -302,9 +283,14 @@ namespace ft
 
 			//Observers
 			/**
-			 * @brief key_comp
+			 * @brief key_comp == value_comp
+			 *
 			 * 컨테이너가 키를 비교하는데 사용하며 비교 객체의 복사본을 반환한다
 			 *
+			 * 연산자< 와 동일하게 반환되는 더 작은 객체.
+			 * 컨테이너 요소들과 같은 유형의 두 개의 인수를 취하는 함수 포인터, 또는 함수 객체이며
+			 * 첫 번째 요소가 두 번째 요소보다 작으면 true, 그렇지 않으면 false를 반환한다.
+			 * value_compare가 false를 반환하는 경우 동등한 것으로 간주된다.
 			 * key_comp가 키가 인수로 전달되는 순서에 관계없이 false를 반환하다면, 두 키는 동등한 것으로 간주한다.
 			 */
 			key_compare key_comp() const
@@ -312,14 +298,6 @@ namespace ft
 				return (key_compare());
 			}
 
-			/**
-			 * @brief value_compare
-			 *
-			 * 두 개의 요소를 비교하여 첫 번째 요소의 키가 두 번쨰 요소보다 이전인지 확인하는데 사용할 수 있는 비교 개체(값)를 반환한다.
-			 * 반환된 비교 개체는 멤버 유형 map::value_compare의 개체로, 내부 비교 개체를 사용하여 적절한 비교 함수 클래스를 생성하는 중첩 클래스입니다.
-			 * 이 비교 클래스의 공용 구성원은 첫 번째 인수의 키가 두 번째 인수의 키보다 이전인 것으로 간주되면 true를 반환하고, 그렇지 않으면 false를 반환한다.
-			 * value_compare에는 공용 생성자가 없으므로 맵 멤버 외부에 있는 이 중첩 클래스에서 직접 개체를 만들 수 없습니다.
-			 */
 			value_compare value_comp() const
 			{
 				return (value_compare());
@@ -340,12 +318,12 @@ namespace ft
 			 */
 			iterator find(const key_type& k)
 			{
-				return (iterator(this->_tree.find(value_type(k, mapped_type()))));
+				return (iterator(this->_tree.find(value_type(k))));
 			}
 
 			const_iterator find(const key_type& k) const
 			{
-				return (const_iterator(this->_tree.find(value_type(k, mapped_type()))));
+				return (const_iterator(this->_tree.find(value_type(k))));
 			}
 
 			/**
@@ -362,7 +340,7 @@ namespace ft
 			 */
 			size_type count(const key_type& k) const
 			{
-				if (this->_tree.find(value_type(k, mapped_type()))->value != NULL)
+				if (this->_tree.find(value_type(k))->value != NULL)
 					return (1);
 				else
 					return (0);
@@ -393,12 +371,12 @@ namespace ft
 			 */
 			iterator lower_bound(const key_type& k)
 			{
-				return (iterator(this->_tree.lower_bound(value_type(k, mapped_type()))));
+				return (iterator(this->_tree.lower_bound(value_type(k))));
 			}
 
 			const_iterator lower_bound(const key_type& k) const
 			{
-				return (const_iterator(this->_tree.lower_bound(value_type(k, mapped_type()))));
+				return (const_iterator(this->_tree.lower_bound(value_type(k))));
 			}
 
 			/**
@@ -420,11 +398,11 @@ namespace ft
 			 */
 			iterator upper_bound(const key_type& k)
 			{
-				return (iterator(this->_tree.upper_bound(value_type(k, mapped_type()))));
+				return (iterator(this->_tree.upper_bound(value_type(k))));
 			}
 			const_iterator upper_bound(const key_type& k) const
 			{
-				return (const_iterator(this->_tree.upper_bound(value_type(k, mapped_type()))));
+				return (const_iterator(this->_tree.upper_bound(value_type(k))));
 			}
 
 			/**
@@ -444,10 +422,10 @@ namespace ft
 			{
 				return (ft::make_pair(lower_bound(k), upper_bound(k)));
 			}
-			pair<const_iterator, const_iterator> equal_range(const key_type& k) const
-			{
-				return (ft::make_pair(lower_bound(k), upper_bound(k)));
-			}
+			// pair<const_iterator, const_iterator> equal_range(const key_type& k) const
+			// {
+			// 	return (ft::make_pair(lower_bound(k), upper_bound(k)));
+			// }
 
 			/**
 			 * @brief Allocator
@@ -471,45 +449,45 @@ namespace ft
 	/**
 	 * @brief Relational operators
 	 */
-	template <class Key, class T, class Compare, class Alloc>
-	bool operator==(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs)
+	template <class Key, class Compare, class Alloc>
+	bool operator==(const set<Key, Compare, Alloc>& lhs, const set<Key, Compare, Alloc>& rhs)
 	{
 		return (lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin()));
 	}
 
-	template <class Key, class T, class Compare, class Alloc>
-	bool operator!=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs)
+	template <class Key, class Compare, class Alloc>
+	bool operator!=(const set<Key, Compare, Alloc>& lhs, const set<Key, Compare, Alloc>& rhs)
 	{
 		return (!(lhs == rhs));
 	}
 
-	template <class Key, class T, class Compare, class Alloc>
-	bool operator<(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs)
+	template <class Key, class Compare, class Alloc>
+	bool operator<(const set<Key, Compare, Alloc>& lhs, const set<Key, Compare, Alloc>& rhs)
 	{
 		return (ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
 	}
 
-	template <class Key, class T, class Compare, class Alloc>
-	bool operator<=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs)
+	template <class Key, class Compare, class Alloc>
+	bool operator<=(const set<Key, Compare, Alloc>& lhs, const set<Key, Compare, Alloc>& rhs)
 	{
 		return (!(rhs < lhs));
 	}
 
-	template <class Key, class T, class Compare, class Alloc>
-	bool operator>(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs)
+	template <class Key, class Compare, class Alloc>
+	bool operator>(const set<Key, Compare, Alloc>& lhs, const set<Key, Compare, Alloc>& rhs)
 	{
 		return (rhs < lhs);
 	}
 
-	template <class Key, class T, class Compare, class Alloc>
-	bool operator>=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs)
+	template <class Key, class Compare, class Alloc>
+	bool operator>=(const set<Key, Compare, Alloc>& lhs, const set<Key, Compare, Alloc>& rhs)
 	{
 		return (!(lhs < rhs));
 	}
 
 	// swap
-	template <class Key, class T, class Compare, class Alloc>
-	void swap(map<Key, T, Compare, Alloc>& x, map<Key, T, Compare, Alloc>& y)
+	template <class Key, class Compare, class Alloc>
+	void swap(set<Key, Compare, Alloc>& x, set<Key, Compare, Alloc>& y)
 	{
 		x.swap(y);
 	}
