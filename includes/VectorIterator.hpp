@@ -170,47 +170,48 @@ namespace ft
 		return (lhs.base() - rhs.base());
 	}
 
-	template <class Iter>
-	bool operator==(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
-	{
-		return ( lhs.base() == rhs.base() );
-	}
+	//non-member non-const function overload
+	// template <class Iter>
+	// bool operator==(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
+	// {
+	// 	return ( lhs.base() == rhs.base() );
+	// }
 
-	template <class Iter>
-	bool operator!=(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
-	{
-		return ( lhs.base() != rhs.base() );
-	}
+	// template <class Iter>
+	// bool operator!=(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
+	// {
+	// 	return ( lhs.base() != rhs.base() );
+	// }
 
-	template <class Iter>
-	bool operator<(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
-	{
-		return ( lhs.base() < rhs.base() );
-	}
+	// template <class Iter>
+	// bool operator<(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
+	// {
+	// 	return ( lhs.base() < rhs.base() );
+	// }
 
-	template <class Iter>
-	bool operator>(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
-	{
-		return ( lhs.base() > rhs.base() );
-	}
+	// template <class Iter>
+	// bool operator>(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
+	// {
+	// 	return ( lhs.base() > rhs.base() );
+	// }
 
-	template <class Iter>
-	bool operator>=(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
-	{
-		return ( lhs.base() >= rhs.base() );
-	}
+	// template <class Iter>
+	// bool operator>=(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
+	// {
+	// 	return ( lhs.base() >= rhs.base() );
+	// }
 
-	template <class Iter>
-	bool operator<=(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
-	{
-		return ( lhs.base() <= rhs.base() );
-	}
+	// template <class Iter>
+	// bool operator<=(const VectorIterator<Iter>& lhs, const VectorIterator<Iter>& rhs)
+	// {
+	// 	return ( lhs.base() <= rhs.base() );
+	// }
 
-	template <class Iterator, class Iterator_c>
-	typename ft::VectorIterator<Iterator>::difference_type operator-(const ft::VectorIterator<Iterator> &lhs, const ft::VectorIterator<Iterator_c> &rhs)
-	{
-		return (lhs.base() - rhs.base());
-	}
+	// template <class Iterator, class Iterator_c>
+	// typename ft::VectorIterator<Iterator>::difference_type operator-(const ft::VectorIterator<Iterator> &lhs, const ft::VectorIterator<Iterator_c> &rhs)
+	// {
+	// 	return (lhs.base() - rhs.base());
+	// }
 };
 
 #endif
