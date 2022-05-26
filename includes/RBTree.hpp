@@ -27,9 +27,10 @@ namespace ft
 	 * AVL과 Red Black의 시간복잡도 차이가 있지만, 자세한 것은 런타임에 대한 복잡성을 넘어야한다.
 	 * 두 가지 중 하나를 선택해 사용할 수 있지만, 주요 차이점은 활용도에 있다.
 	 * avl : 탐색의 비율이 삽입/삭제의 비율보다 클 때 사용하면 좋다. -> rbtree보다 삽입/삭제가 느리다. -> 만들어 놓으면 삽입/삭제가 거의 없고 검색이 대부분인 상황에서 사용한다.
-	 * rb : 탐색와 삽입/삭제 사이에 균형이 있거나 삽입/삭제이 더 많은 경우 좋다. -> avl보다 탐색이 느리다. -> linux kernel 내부에서 사용, java treemap, c++ std::map에 사용
+	 * rb : 탐색와 삽입/삭제 사이에 균형이 있거나 삽입/삭제가 더 많은 경우 좋다. -> avl보다 탐색이 느리다. -> linux kernel 내부에서 사용, java treemap, c++ std::map에 사용
 	 * avl보다 rbtree에서 재조정 작업이 적다. 색상을 사용하면 상대적으로 비용이 많이 드는 재조정 작업을 건너뛰거나 줄일 수 있기때문이다.
-	 * 채색으로 인해 RB 트리는 검은색 노드 사이에 빨간색 노드를 허용할 수 있기 때문에(~2배 더 많은 수준의 가능성을 가짐) 검색(읽기) 효율성이 약간 떨어질 수 있기 때문에 더 높은 수준의 노드를 갖습니다.
+	 * 색을 가짐으로 인해 RB트리는 검은색 노드 사이에 빨간색 노드를 허용할 수 있기 때문에(~2배 더 많은 수준의 가능성을 가짐)
+	 * 검색(읽기) 효율성이 약간 떨어질 수 있기 때문에 더 높은 수준의 노드를 갖습니다.
 	 * 상수(2x)이면 O(log n)에 유지됩니다.
 	 * 트리 수정에 대한 성능 적중(중요함)과 트리 컨설팅의 성능 적중(거의 미미함)을 고려하면 일반적인 경우 AVL보다 RB를 선호하는 것이 당연합니다.
 	 * https://stackoverflow.com/questions/5288320/why-is-stdmap-implemented-as-a-red-black-tree 참고 사이트
@@ -83,7 +84,22 @@ namespace ft
 			typedef typename ft::RBTreeIterator<T, T*, T&>	iterator;
 			typedef typename ft::RBTreeIterator<T, const T*, const T&>	const_iterator;
 			typedef typename Alloc::template rebind<node_type>::other	node_allocator_type;
-
+			/**
+			 * @brief rebind
+			 *
+			 * rebind 는 어떤 종류의 객체를 얻기 위해 사용된다.
+			 * std::list와 A라는 타입을 예로들면,
+			 * std::list<T,A> 할당자는 T를 할당하기 위한 A이지만, 실제로 내부에서 list는 노드 기반으로 가지고 있어야 한다.
+			 * 이렇게 T타입이 아닌, 다른 타입으로도의 할당( node )이 필요해지게 되는데
+			 * 이와 같은 요구사항을 충족하기 위해 rebind 를 가져야 할 것을 권고 하고 있다.
+			 *
+			 * 우리가 allocator에 넘긴 템플릿 파라미터는 T, 즉 int 타입이기만 한데...
+			 * 이것만으로 allocate 함수를 호출한다면, 딸랑 4바이트만 할당이 될 것이다.
+			 * (실상은 2개의 포인터 + int의 12바이트(32비트의 경우)가 필요한데 말이다)
+			 *
+			 * T타입이 아닌 다른 타입에 대한 allocate가 필요해진다. -> rebind 사용
+			 *
+			 */
 		private:
 			/**
 			 * @brief Member variables
@@ -269,7 +285,7 @@ namespace ft
 				insert_case1(new_node);
 				this->_size++;
 				this->_nil->parent = get_max_value_node();
-				return ft::make_pair(new_node, true);
+				return (ft::make_pair(new_node, true));
 			}
 
 			/**
@@ -348,8 +364,9 @@ namespace ft
 				if (node->value == NULL)
 					return (0);
 				//node의 왼쪽 서브트리에서 최댓값 / 오른쪽 서브트리에서 최솟값을 찾은 후 위치를 변경한다.
-				//기존 target 위치에는 대체할 node가 들어가있다.
+				//기존 target위치에는 대체할 node가 들어가있다.
 				//target 노드 자체를 삭제해야 한다.
+				//node와 target의 값을 바꾸고 target을 리턴받음.
 				//위치변경 후 target은 child에 non-nil 노드가 최대 1개이다.
 				//child는 target노드의 non-nil child가 우선이다.
 				node_type* target = replace_erase_node(node);
@@ -365,7 +382,6 @@ namespace ft
 				{
 					//2)target이 BLACK이고 child가 RED인 경우,
 					//target과 child의 색을 바꾸고 child의 색을 BLACK으로 바꾼다.
-					//해당 경우만 child node가 non-nil노드이다.
 					if (child->color == RED)
 						child->color = BLACK;
 					else
@@ -601,6 +617,7 @@ namespace ft
 				 * 삭제한 노드를 대체할 노드에는 반드시 1개의 자식 노드만 있다는 점이다.
 				 * 그 이유는 즉슨, 자식 2개를 보유한 노드일 경우,
 				 * 왼쪽 자식 < 대체 노드 < 오른쪽 자식이라는 결론이 도출되므로, 자식 2개를 보유할 가능성은 절대적으로 0이라는 것이다.
+				 *
 				 * ->node의 leftChild가 있으면, 왼쪽 서브트리에서 최댓값,
 				 * ->node의 leftChild가 없으면, 오른쪽 서브트리에서 최솟값을 찾는다.
 				 * 찾은 값의 value를 node에 복사하고, 찾은 그 노드는 삭제해야 하므로 리턴한다.
@@ -672,7 +689,7 @@ namespace ft
 				res->parent = tmp_parent;
 
 				if (res->parent->value == NULL)
-					_root = res;
+					this->_root = res;
 				node->color = res->color;
 				res->color = tmp_color;
 
